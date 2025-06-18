@@ -8,6 +8,9 @@ module.exports = {
     'js/usuarios/index' : './src/js/usuarios/index.js',
     'js/marcas/index' : './src/js/marcas/index.js',
     'js/modelos/index' : './src/js/modelos/index.js',
+    'js/asignaciones/index' : './src/js/asignaciones/index.js',
+    'js/estadisticas/index' : './src/js/estadisticas/index.js',
+    'js/mapas/index' : './src/js/mapas/index.js'
   },
   output: {
     filename: '[name].js',

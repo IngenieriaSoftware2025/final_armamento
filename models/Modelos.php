@@ -4,7 +4,7 @@ namespace Model;
 
 class Modelos extends ActiveRecord {
 
-    public static $tabla = 'modelos';
+    public static $tabla = 'lopez_modelos';
     public static $columnasDB = [
         'id_marca',
         'nombre_modelo',
@@ -27,7 +27,7 @@ class Modelos extends ActiveRecord {
         $this->id_marca = $args['id_marca'] ?? '';
         $this->nombre_modelo = $args['nombre_modelo'] ?? '';
         $this->especificaciones = $args['especificaciones'] ?? '';
-        $this->precio_referencia = $args['precio_referencia'] ?? 0;
+        $this->precio_referencia = $args['precio_referencia'] ?? null;
         $this->activo = $args['activo'] ?? 'T';
         $this->fecha_creacion = $args['fecha_creacion'] ?? null;
     }

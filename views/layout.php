@@ -31,13 +31,36 @@
                         <a class="nav-link" aria-current="page" href="/final_armamento/usuarios"><i class="bi bi-house-fill me-2"></i>Usuarios</a>
                     </li>
 
+                    <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-gear me-2"></i>Armamento
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark" style="margin: 0;">
+                        <li>
+                            <a class="dropdown-item nav-link text-white" href="/final_armamento/marcas">
+                                <i class="bi bi-box-seam me-2"></i>Tipo de armamento
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item nav-link text-white" href="/final_armamento/modelos">
+                                <i class="bi bi-people me-2"></i>Modelos de armamento
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/final_armamento/marcas"><i class="bi bi-house-fill me-2"></i>Tipo de armamento</a>
+                        <a class="nav-link" aria-current="page" href="/final_armamento/asignaciones"><i class="bi bi-house-fill me-2"></i>Asignaciones de armamento</a>
+                    </li>
+  
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="/final_armamento/estadisticas"><i class="bi bi-house-fill me-2"></i>Estadisticas</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/final_armamento/modelos"><i class="bi bi-house-fill me-2"></i>Modelos de armamento</a>
+                        <a class="nav-link" aria-current="page" href="/final_armamento/mapas"><i class="bi bi-house-fill me-2"></i>Mapas</a>
                     </li>
+
   
   
                     <div class="nav-item dropdown " >

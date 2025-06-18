@@ -8,6 +8,32 @@ const FormMarcas = document.getElementById('FormMarcas');
 const BtnGuardar = document.getElementById('BtnGuardar');
 const BtnModificar = document.getElementById('BtnModificar');
 const BtnLimpiar = document.getElementById('BtnLimpiar');
+const InputDescripcion = document.getElementById('descripcion');
+
+const ValidarDescripcion = () => {
+    const descripcion = InputDescripcion.value;
+    const maxLength = 200;
+
+    if (descripcion.length > maxLength) {
+        Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Descripción muy larga",
+            text: `La descripción no puede exceder los ${maxLength} caracteres`,
+            showConfirmButton: true,
+        });
+
+        InputDescripcion.classList.remove('is-valid');
+        InputDescripcion.classList.add('is-invalid');
+    } else {
+        InputDescripcion.classList.remove('is-invalid');
+        if (descripcion.length > 0) {
+            InputDescripcion.classList.add('is-valid');
+        } else {
+            InputDescripcion.classList.remove('is-valid');
+        }
+    }
+}
 
 const GuardarMarca = async (event) => {
     event.preventDefault();
@@ -67,7 +93,7 @@ const GuardarMarca = async (event) => {
 }
 
 const BuscarMarcas = async () => {
-    const url = '/proyecto_pmlx/marcas/buscarAPI';
+    const url = '/final_armamento/marcas/buscarAPI';
     const config = {
         method: 'GET'
     }
@@ -118,64 +144,27 @@ const datatable = new DataTable('#TableMarcas', {
             render: (data, type, row, meta) => meta.row + 1
         },
         { 
-            title: 'Tipo de Armamento', 
+            title: 'Nombre de la Marca', 
             data: 'nombre_marca',
-            width: '20%',
-            render: (data, type, row) => {
-                // Determinar el color del badge según la marca
-                let badgeClass = '';
-                const marca = data.toLowerCase();
-                
-                if (marca.includes('samsung')) {
-                    badgeClass = 'bg-primary';
-                } else if (marca.includes('apple') || marca.includes('iphone')) {
-                    badgeClass = 'bg-secondary';
-                } else if (marca.includes('huawei')) {
-                    badgeClass = 'bg-danger';
-                } else if (marca.includes('xiaomi')) {
-                    badgeClass = 'bg-warning text-dark';
-                } else if (marca.includes('motorola')) {
-                    badgeClass = 'bg-info';
-                } else {
-                    badgeClass = 'bg-success';
-                }
-                
-                return `<span class="badge ${badgeClass} me-2">Marca</span>${data}`;
-            }
+            width: '25%'
         },
         { 
             title: 'Descripción', 
             data: 'descripcion',
-            width: '30%',
+            width: '35%',
             render: (data, type, row) => {
+                if (data && data.length > 50) {
+                    return data.substring(0, 50) + '...';
+                }
                 return data || '<span class="text-muted">Sin descripción</span>';
             }
         },
         { 
-            title: 'Tipos Registrados', 
-            data: 'modelos_registrados',
-            width: '10%',
-            render: (data, type, row) => {
-                const cantidad = parseInt(data);
-                let badge = '';
-                
-                if (cantidad === 0) {
-                    badge = '<span class="badge bg-light text-dark">Sin modelos</span>';
-                } else if (cantidad === 1) {
-                    badge = '<span class="badge bg-info">1 modelo</span>';
-                } else {
-                    badge = `<span class="badge bg-warning">${cantidad} modelos</span>`;
-                }
-                
-                return badge;
-            }
-        },
-        { 
-            title: 'Usuario Creador', 
-            data: 'usuario_creador',
+            title: 'Usuario Creación', 
+            data: 'usuario_creacion',
             width: '15%',
             render: (data, type, row) => {
-                return data || '<span class="text-muted">Sistema</span>';
+                return data || '<span class="text-muted">No especificado</span>';
             }
         },
         { 
@@ -185,9 +174,9 @@ const datatable = new DataTable('#TableMarcas', {
             render: (data, type, row) => {
                 if (data) {
                     const fecha = new Date(data);
-                    return fecha.toLocaleDateString('es-GT');
+                    return fecha.toLocaleDateString('es-ES');
                 }
-                return '<span class="text-muted">N/A</span>';
+                return '<span class="text-muted">No disponible</span>';
             }
         },
         {
@@ -202,15 +191,14 @@ const datatable = new DataTable('#TableMarcas', {
                      <button class='btn btn-warning btn-sm modificar mx-1' 
                          data-id="${data}" 
                          data-nombre="${row.nombre_marca}"  
-                         data-descripcion="${row.descripcion || ''}"  
-                         title="Modificar tipo de armamento">
+                         data-descripcion="${row.descripcion || ''}"
+                         title="Modificar marca">
                          <i class='bi bi-pencil-square me-1'></i> Modificar
                      </button>
                      <button class='btn btn-danger btn-sm eliminar mx-1' 
                          data-id="${data}"
                          data-nombre="${row.nombre_marca}"
-                         data-modelos="${row.modelos_registrados}"
-                         title="Eliminar tipo de armamento">
+                         title="Eliminar marca">
                         <i class="bi bi-x-circle me-1"></i>Eliminar
                      </button>
                  </div>`;
@@ -219,7 +207,7 @@ const datatable = new DataTable('#TableMarcas', {
     ]
 });
 
-const llenarFormulario = (event) => {
+const llenarFormulario = async (event) => {
     const datos = event.currentTarget.dataset
 
     document.getElementById('id_marca').value = datos.id
@@ -250,7 +238,7 @@ const ModificarMarca = async (event) => {
     event.preventDefault();
     BtnModificar.disabled = true;
 
-    if (!validarFormulario(FormMarcas, [''])) {
+    if (!validarFormulario(FormMarcas, ['id_marca'])) {
         Swal.fire({
             position: "center",
             icon: "info",
@@ -264,7 +252,7 @@ const ModificarMarca = async (event) => {
 
     const body = new FormData(FormMarcas);
 
-    const url = '/proyecto_pmlx/marcas/modificarAPI';
+    const url = '/final_armamento/marcas/modificarAPI';
     const config = {
         method: 'POST',
         body
@@ -310,7 +298,7 @@ const EliminarMarca = async (e) => {
     const AlertaConfirmarEliminar = await Swal.fire({
         position: "center",
         icon: "question",
-        title: "¿Desea eliminar este tipo de armamento?",
+        title: "¿Desea eliminar esta marca?",
         text: `La marca "${nombreMarca}" será desactivada pero no eliminada permanentemente`,
         showConfirmButton: true,
         confirmButtonText: 'Sí, eliminar',
@@ -320,23 +308,14 @@ const EliminarMarca = async (e) => {
     });
 
     if (AlertaConfirmarEliminar.isConfirmed) {
-        const url = `/final_armamento/marcas/eliminar?id=${idMarca}`;
-        console.log('URL de eliminación:', url); // Debug
-        
+        const url = `/final_armamento/marcas/eliminarAPI?id=${idMarca}`;
         const config = {
             method: 'GET'
         }
 
         try {
             const consulta = await fetch(url, config);
-            console.log('Status de respuesta:', consulta.status); // Debug
-            
-            const textoRespuesta = await consulta.text();
-            console.log('Respuesta cruda:', textoRespuesta); // Debug
-            
-            const respuesta = JSON.parse(textoRespuesta);
-            console.log('Respuesta parseada:', respuesta); // Debug
-            
+            const respuesta = await consulta.json();
             const { codigo, mensaje } = respuesta;
 
             if (codigo == 1) {
@@ -360,14 +339,7 @@ const EliminarMarca = async (e) => {
             }
 
         } catch (error) {
-            console.log('Error completo:', error);
-            await Swal.fire({
-                position: "center",
-                icon: "error",
-                title: "Error de conexión",
-                text: "No se pudo conectar con el servidor",
-                showConfirmButton: true,
-            });
+            console.log(error)
         }
     }
 }
@@ -379,5 +351,6 @@ BuscarMarcas();
 datatable.on('click', '.eliminar', EliminarMarca);
 datatable.on('click', '.modificar', llenarFormulario);
 FormMarcas.addEventListener('submit', GuardarMarca);
+InputDescripcion.addEventListener('input', ValidarDescripcion);
 BtnLimpiar.addEventListener('click', limpiarTodo);
 BtnModificar.addEventListener('click', ModificarMarca);

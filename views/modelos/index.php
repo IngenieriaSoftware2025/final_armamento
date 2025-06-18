@@ -1,9 +1,9 @@
 <div class="row justify-content-center p-3">
-    <div class="col-lg-10">
+    <div class="col-lg-12">
         <div class="card custom-card shadow-lg" style="border-radius: 10px; border: 1px solid #007bff;">
             <div class="card-body p-3">
                 <div class="row mb-3">
-                      <h3 class="text-center text-success">REGISTRAR MODELOS DEL ARMA</h3>
+                      <h3 class="text-center text-success">REGISTRAR MODELOS</h3>
                 </div>
 
                 <div class="row justify-content-center p-5 shadow-lg">
@@ -12,28 +12,31 @@
                         <input type="hidden" id="id_modelo" name="id_modelo">
 
                         <div class="row mb-3 justify-content-center">
-                            <div class="col-lg-6">
-                                <label for="id_marca" class="form-label">TIPO</label>
+                            <div class="col-lg-4">
+                                <label for="id_marca" class="form-label">MARCA</label>
                                 <select class="form-select" id="id_marca" name="id_marca" required>
-                                    <option value="">Seleccione un tipo</option>
+                                    <option value="">Seleccione una marca</option>
                                 </select>
                             </div>
-                            <div class="col-lg-6">
+                            <div class="col-lg-8">
                                 <label for="nombre_modelo" class="form-label">NOMBRE DEL MODELO</label>
-                                <input type="text" class="form-control" id="nombre_modelo" name="nombre_modelo" placeholder="PISTOLA GLOCK..." required>
+                                <input type="text" class="form-control" id="nombre_modelo" name="nombre_modelo" placeholder="Ingrese el nombre del modelo" required>
                             </div>
                         </div>
 
                         <div class="row mb-3 justify-content-center">
                             <div class="col-lg-8">
                                 <label for="especificaciones" class="form-label">ESPECIFICACIONES</label>
-                                <textarea class="form-control" id="especificaciones" name="especificaciones" rows="3" placeholder="Especificaciones técnicas del modelo (opcional)"></textarea>
-                                <div class="form-text">Incluya información Calibre del arma.</div>
+                                <input type="text" class="form-control" id="especificaciones" name="especificaciones" placeholder="Especificaciones técnicas (opcional, máximo 100 caracteres)">
+                                <div class="form-text">Máximo 100 caracteres</div>
                             </div>
                             <div class="col-lg-4">
                                 <label for="precio_referencia" class="form-label">PRECIO DE REFERENCIA</label>
-                                <input type="number" class="form-control" id="precio_referencia" name="precio_referencia" placeholder="0.00" min="0" step="0.01">
-                                <div class="form-text">Precio opcional de referencia</div>
+                                <div class="input-group">
+                                    <span class="input-group-text">Q</span>
+                                    <input type="number" class="form-control" id="precio_referencia" name="precio_referencia" placeholder="0.00" step="0.01" min="0" max="99999999.99">
+                                </div>
+                                <div class="form-text">Precio opcional en Quetzales</div>
                             </div>
                         </div>
 

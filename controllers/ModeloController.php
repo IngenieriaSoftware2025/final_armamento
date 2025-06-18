@@ -8,28 +8,18 @@ use Model\Modelos;
 use MVC\Router;
 
 class ModeloController extends ActiveRecord{
-    public static function renderizarPagina(Router $router) {
-    // verificarPermisos('modelos');
+   public static function renderizarPagina(Router $router)
+{
+    // verificarPermisos('modelos'); 
+    
     $router->render('modelos/index', []);
 }
 
     //Guardar Modelos
-    //Guardar Modelos
     public static function guardarAPI(){
-        session_start(); // ✅ AGREGADO
-        
-        $_POST['nombre_modelo'] = htmlspecialchars($_POST['nombre_modelo']);
-        $cantidad_nombre = strlen($_POST['nombre_modelo']);
+        getHeadersApi();
 
-        if ($cantidad_nombre < 2){
-            http_response_code(400);
-            echo json_encode([
-                'codigo' => 0,
-                'mensaje' => 'El nombre del modelo debe tener al menos 2 caracteres'
-            ]);
-            return;
-        }
-
+        // Validar marca
         $marca_validada = filter_var($_POST['id_marca'], FILTER_VALIDATE_INT);
         if ($marca_validada === false || $marca_validada <= 0){
             http_response_code(400);
@@ -40,8 +30,7 @@ class ModeloController extends ActiveRecord{
             return;
         }
 
-        // Verificar que la marca existe
-        $sql_verificar_marca = "SELECT id_marca FROM marcas WHERE id_marca = $marca_validada AND activo = 'T'";
+        $sql_verificar_marca = "SELECT id_marca FROM lopez_marcas WHERE id_marca = $marca_validada AND activo = 'T'";
         $marca_existe = self::fetchFirst($sql_verificar_marca);
         
         if (!$marca_existe) {
@@ -53,15 +42,30 @@ class ModeloController extends ActiveRecord{
             return;
         }
 
-        // Verificar que no exista el mismo modelo para la misma marca
-        $nombre_repetido = trim(strtoupper($_POST['nombre_modelo']));
-        $sql_verificar = "SELECT id_modelo FROM modelos 
-                         WHERE UPPER(TRIM(nombre_modelo)) = " . self::$db->quote($nombre_repetido) . "
-                         AND id_marca = $marca_validada
+        $_POST['id_marca'] = $marca_validada;
+
+        // Validar nombre del modelo
+        $_POST['nombre_modelo'] = htmlspecialchars($_POST['nombre_modelo']);
+        $cantidad_nombre_modelo = strlen($_POST['nombre_modelo']);
+
+        if ($cantidad_nombre_modelo < 2){
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'El nombre del modelo debe tener al menos 2 caracteres'
+            ]);
+            return;
+        }
+
+        // Verificar duplicado (único por marca)
+        $modelo_repetido = trim(strtolower($_POST['nombre_modelo']));
+        $sql_verificar = "SELECT id_modelo FROM lopez_modelos 
+                         WHERE LOWER(TRIM(nombre_modelo)) = " . self::$db->quote($modelo_repetido) . "
+                         AND id_marca = " . $_POST['id_marca'] . "
                          AND activo = 'T'";
-        $nombre_existe = self::fetchFirst($sql_verificar);
+        $modelo_existe = self::fetchFirst($sql_verificar);
         
-        if ($nombre_existe) {
+        if ($modelo_existe) {
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
@@ -70,32 +74,54 @@ class ModeloController extends ActiveRecord{
             return;
         }
 
-        $_POST['especificaciones'] = htmlspecialchars($_POST['especificaciones']);
+        // Validar especificaciones
+        if (!empty($_POST['especificaciones'])) {
+            $_POST['especificaciones'] = htmlspecialchars($_POST['especificaciones']);
+            $cantidad_especificaciones = strlen($_POST['especificaciones']);
 
-        // Validar precio de referencia si se proporciona
-        if (!empty($_POST['precio_referencia'])) {
-            $precio_validado = filter_var($_POST['precio_referencia'], FILTER_VALIDATE_FLOAT);
-            if ($precio_validado === false || $precio_validado < 0){
+            if ($cantidad_especificaciones > 100) {
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
-                    'mensaje' => 'El precio de referencia debe ser un número válido y no negativo'
+                    'mensaje' => 'Las especificaciones no pueden exceder los 100 caracteres'
                 ]);
                 return;
             }
-            $_POST['precio_referencia'] = $precio_validado;
+        }
+
+        // Validar precio de referencia
+        if (!empty($_POST['precio_referencia'])) {
+            $precio = filter_var($_POST['precio_referencia'], FILTER_VALIDATE_FLOAT);
+            if ($precio === false || $precio < 0) {
+                http_response_code(400);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'El precio de referencia debe ser un número válido y mayor o igual a 0'
+                ]);
+                return;
+            }
+
+            if ($precio > 99999999.99) {
+                http_response_code(400);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'El precio de referencia excede el límite máximo'
+                ]);
+                return;
+            }
+
+            $_POST['precio_referencia'] = $precio;
         } else {
-            $_POST['precio_referencia'] = 0;
+            $_POST['precio_referencia'] = null;
         }
 
         try {
             $data = new Modelos([
-                'id_marca' => $marca_validada,
+                'id_marca' => $_POST['id_marca'],
                 'nombre_modelo' => $_POST['nombre_modelo'],
                 'especificaciones' => $_POST['especificaciones'],
                 'precio_referencia' => $_POST['precio_referencia'],
-                'activo' => 'T',
-                'usuario_creacion' => $_SESSION['usuario_id'] ?? 1  
+                'activo' => 'T'
             ]);
 
             $crear = $data->crear();
@@ -118,12 +144,11 @@ class ModeloController extends ActiveRecord{
     //Buscar Modelos
     public static function buscarAPI(){
         try {
-            $sql = "SELECT m.id_modelo, m.nombre_modelo, m.especificaciones, 
+            $sql = "SELECT m.id_modelo, m.id_marca, m.nombre_modelo, m.especificaciones, 
                            m.precio_referencia, m.activo, m.fecha_creacion,
-                           ma.nombre_marca, ma.id_marca,
-                           (SELECT COUNT(*) FROM inventario i WHERE i.id_modelo = m.id_modelo AND i.disponible = 'T') as inventario_disponible
-                    FROM modelos m 
-                    INNER JOIN marcas ma ON m.id_marca = ma.id_marca
+                           ma.nombre_marca
+                    FROM lopez_modelos m 
+                    INNER JOIN lopez_marcas ma ON m.id_marca = ma.id_marca 
                     WHERE m.activo = 'T'
                     ORDER BY ma.nombre_marca, m.nombre_modelo";
             $data = self::fetchArray($sql);
@@ -146,24 +171,13 @@ class ModeloController extends ActiveRecord{
 
     //Modificar Modelos
     public static function modificarAPI(){
-        // getHeadersApi(); // Comentado temporalmente
+        getHeadersApi();
 
         $id = $_POST['id_modelo'];
 
-        $_POST['nombre_modelo'] = htmlspecialchars($_POST['nombre_modelo']);
-        $cantidad_nombre = strlen($_POST['nombre_modelo']);
-
-        if ($cantidad_nombre < 2) {
-            http_response_code(400);
-            echo json_encode([
-                'codigo' => 0,
-                'mensaje' => 'El nombre del modelo debe tener al menos 2 caracteres'
-            ]);
-            return;
-        }
-
+        // Validar marca
         $marca_validada = filter_var($_POST['id_marca'], FILTER_VALIDATE_INT);
-        if ($marca_validada === false || $marca_validada <= 0) {
+        if ($marca_validada === false || $marca_validada <= 0){
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
@@ -172,8 +186,7 @@ class ModeloController extends ActiveRecord{
             return;
         }
 
-        // Verificar que la marca existe
-        $sql_verificar_marca = "SELECT id_marca FROM marcas WHERE id_marca = $marca_validada AND activo = 'T'";
+        $sql_verificar_marca = "SELECT id_marca FROM lopez_marcas WHERE id_marca = $marca_validada AND activo = 'T'";
         $marca_existe = self::fetchFirst($sql_verificar_marca);
         
         if (!$marca_existe) {
@@ -185,16 +198,31 @@ class ModeloController extends ActiveRecord{
             return;
         }
 
-        // Verificar que no exista el mismo modelo para la misma marca (excluyendo el actual)
-        $nombre_repetido = trim(strtoupper($_POST['nombre_modelo']));
-        $sql_verificar = "SELECT id_modelo FROM modelos 
-                         WHERE UPPER(TRIM(nombre_modelo)) = " . self::$db->quote($nombre_repetido) . "
-                         AND id_marca = $marca_validada
+        $_POST['id_marca'] = $marca_validada;
+
+        // Validar nombre del modelo
+        $_POST['nombre_modelo'] = htmlspecialchars($_POST['nombre_modelo']);
+        $cantidad_nombre_modelo = strlen($_POST['nombre_modelo']);
+
+        if ($cantidad_nombre_modelo < 2) {
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'El nombre del modelo debe tener al menos 2 caracteres'
+            ]);
+            return;
+        }
+
+        // Verificar duplicado (único por marca, excluyendo el actual)
+        $modelo_repetido = trim(strtolower($_POST['nombre_modelo']));
+        $sql_verificar = "SELECT id_modelo FROM lopez_modelos 
+                         WHERE LOWER(TRIM(nombre_modelo)) = " . self::$db->quote($modelo_repetido) . "
+                         AND id_marca = " . $_POST['id_marca'] . "
                          AND activo = 'T' 
                          AND id_modelo != " . (int)$id;
-        $nombre_existe = self::fetchFirst($sql_verificar);
+        $modelo_existe = self::fetchFirst($sql_verificar);
         
-        if ($nombre_existe) {
+        if ($modelo_existe) {
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
@@ -203,34 +231,59 @@ class ModeloController extends ActiveRecord{
             return;
         }
 
-        $_POST['especificaciones'] = htmlspecialchars($_POST['especificaciones']);
+        // Validar especificaciones
+        if (!empty($_POST['especificaciones'])) {
+            $_POST['especificaciones'] = htmlspecialchars($_POST['especificaciones']);
+            $cantidad_especificaciones = strlen($_POST['especificaciones']);
 
-        // Validar precio de referencia si se proporciona
-        if (!empty($_POST['precio_referencia'])) {
-            $precio_validado = filter_var($_POST['precio_referencia'], FILTER_VALIDATE_FLOAT);
-            if ($precio_validado === false || $precio_validado < 0) {
+            if ($cantidad_especificaciones > 100) {
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
-                    'mensaje' => 'El precio de referencia debe ser un número válido y no negativo'
+                    'mensaje' => 'Las especificaciones no pueden exceder los 100 caracteres'
                 ]);
                 return;
             }
-            $_POST['precio_referencia'] = $precio_validado;
+        }
+
+        // Validar precio de referencia
+        if (!empty($_POST['precio_referencia'])) {
+            $precio = filter_var($_POST['precio_referencia'], FILTER_VALIDATE_FLOAT);
+            if ($precio === false || $precio < 0) {
+                http_response_code(400);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'El precio de referencia debe ser un número válido y mayor o igual a 0'
+                ]);
+                return;
+            }
+
+            if ($precio > 99999999.99) {
+                http_response_code(400);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'El precio de referencia excede el límite máximo'
+                ]);
+                return;
+            }
+
+            $_POST['precio_referencia'] = $precio;
         } else {
-            $_POST['precio_referencia'] = 0;
+            $_POST['precio_referencia'] = null;
         }
 
         try {
             $data = Modelos::find($id);
-            $data->sincronizar([
-                'id_marca' => $marca_validada,
+            
+            $datos_actualizar = [
+                'id_marca' => $_POST['id_marca'],
                 'nombre_modelo' => $_POST['nombre_modelo'],
                 'especificaciones' => $_POST['especificaciones'],
                 'precio_referencia' => $_POST['precio_referencia'],
                 'activo' => 'T'
-            ]);
+            ];
 
+            $data->sincronizar($datos_actualizar);
             $data->actualizar();
 
             http_response_code(200);
@@ -255,8 +308,8 @@ class ModeloController extends ActiveRecord{
             $id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
 
             $sql_verificar = "SELECT m.id_modelo, m.nombre_modelo, ma.nombre_marca 
-                             FROM modelos m 
-                             INNER JOIN marcas ma ON m.id_marca = ma.id_marca
+                             FROM lopez_modelos m 
+                             INNER JOIN lopez_marcas ma ON m.id_marca = ma.id_marca
                              WHERE m.id_modelo = $id AND m.activo = 'T'";
             $modelo = self::fetchFirst($sql_verificar);
             
@@ -269,16 +322,17 @@ class ModeloController extends ActiveRecord{
                 return;
             }
 
-            // Verificar si hay inventario con este modelo (temporalmente comentado)
+            // Verificar si el modelo está siendo utilizado en otras tablas (opcional)
+            // Ejemplo: si tienes una tabla de equipos que use este modelo
             /*
-            $inventario_asignado = self::InventarioAsignadoModelo($id);
+            $sql_verificar_uso = "SELECT COUNT(*) as total FROM lopez_equipos WHERE id_modelo = $id AND activo = 'T'";
+            $uso_modelo = self::fetchFirst($sql_verificar_uso);
             
-            if ($inventario_asignado > 0) {
+            if ($uso_modelo['total'] > 0) {
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
-                    'mensaje' => 'No se puede eliminar el modelo porque tiene inventario registrado',
-                    'detalle' => "Hay $inventario_asignado producto(s) en inventario con este modelo."
+                    'mensaje' => 'No se puede eliminar el modelo porque está siendo utilizado en equipos'
                 ]);
                 return;
             }
@@ -290,7 +344,7 @@ class ModeloController extends ActiveRecord{
             echo json_encode([
                 'codigo' => 1,
                 'mensaje' => 'El modelo ha sido desactivado correctamente',
-                'detalle' => "Modelo '{$modelo['nombre_modelo']}' de {$modelo['nombre_marca']} desactivado exitosamente"
+                'detalle' => "Modelo '{$modelo['nombre_modelo']}' de la marca '{$modelo['nombre_marca']}' desactivado exitosamente"
             ]);
         
         } catch (Exception $e) {
@@ -303,27 +357,23 @@ class ModeloController extends ActiveRecord{
         }
     }
 
-    public static function modelosPorMarcaAPI(){
+    // Obtener marcas activas
+    public static function marcasAPI(){
         try {
-            $id_marca = filter_var($_GET['id_marca'], FILTER_SANITIZE_NUMBER_INT);
-            
-            $sql = "SELECT id_modelo, nombre_modelo, precio_referencia 
-                    FROM modelos 
-                    WHERE id_marca = $id_marca AND activo = 'T' 
-                    ORDER BY nombre_modelo";
+            $sql = "SELECT id_marca, nombre_marca FROM lopez_marcas WHERE activo = 'T' ORDER BY nombre_marca";
             $data = self::fetchArray($sql);
 
             http_response_code(200);
             echo json_encode([
                 'codigo' => 1,
-                'mensaje' => 'Modelos obtenidos correctamente',
+                'mensaje' => 'Marcas obtenidas correctamente',
                 'data' => $data
             ]);
         } catch (Exception $e) {
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
-                'mensaje' => 'Error al obtener los modelos',
+                'mensaje' => 'Error al obtener las marcas',
                 'detalle' => $e->getMessage()
             ]);
         }
@@ -331,31 +381,8 @@ class ModeloController extends ActiveRecord{
 
     public static function EliminarModelo($id, $situacion)
     {
-        $sql = "UPDATE modelos SET activo = '$situacion' WHERE id_modelo = $id";
+        $sql = "UPDATE lopez_modelos SET activo = '$situacion' WHERE id_modelo = $id";
         return self::SQL($sql);
-    }
-
-    public static function InventarioAsignadoModelo($id_modelo)
-    {
-        $sql = "SELECT COUNT(*) as total FROM inventario WHERE id_modelo = $id_modelo AND disponible = 'T'";
-        $resultado = self::fetchFirst($sql);
-        return $resultado['total'] ?? 0;
-    }
-
-    public static function ObtenerModelosPorMarca($id_marca)
-    {
-        $sql = "SELECT * FROM modelos WHERE id_marca = $id_marca AND activo = 'T' ORDER BY nombre_modelo";
-        return self::fetchArray($sql);
-    }
-
-    public static function ObtenerModelosDisponibles()
-    {
-        $sql = "SELECT m.*, ma.nombre_marca 
-                FROM modelos m 
-                INNER JOIN marcas ma ON m.id_marca = ma.id_marca
-                WHERE m.activo = 'T' 
-                ORDER BY ma.nombre_marca, m.nombre_modelo";
-        return self::fetchArray($sql);
     }
 
     public static function ReactivarModelo($id)

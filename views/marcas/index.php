@@ -3,7 +3,7 @@
         <div class="card custom-card shadow-lg" style="border-radius: 10px; border: 1px solid #007bff;">
             <div class="card-body p-3">
                 <div class="row mb-3">
-                      <h3 class="text-center text-success">REGISTRAR TIPO DE ARMAMENTO</h3>
+                      <h3 class="text-center text-success">REGISTRAR MARCAS</h3>
                 </div>
 
                 <div class="row justify-content-center p-5 shadow-lg">
@@ -13,16 +13,16 @@
 
                         <div class="row mb-3 justify-content-center">
                             <div class="col-lg-8">
-                                <label for="nombre_marca" class="form-label">TIPO DE ARMAMENTO</label>
-                                <input type="text" class="form-control" id="nombre_marca" name="nombre_marca" placeholder="Ej:Fusil Galil..." required>
+                                <label for="nombre_marca" class="form-label">NOMBRE DE LA MARCA</label>
+                                <input type="text" class="form-control" id="nombre_marca" name="nombre_marca" placeholder="Ingrese el nombre de la marca" required>
                             </div>
                         </div>
 
                         <div class="row mb-3 justify-content-center">
-                            <div class="col-lg-8">
+                            <div class="col-lg-12">
                                 <label for="descripcion" class="form-label">DESCRIPCIÓN</label>
-                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3" placeholder="Descripción de la marca (opcional)"></textarea>
-                                <div class="form-text">La descripción es opcional pero recomendada</div>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3" placeholder="Descripción de la marca (opcional, máximo 200 caracteres)"></textarea>
+                                <div class="form-text">Máximo 200 caracteres</div>
                             </div>
                         </div>
 
@@ -56,7 +56,7 @@
     <div class="col-lg-12">
         <div class="card custom-card shadow-lg" style="border-radius: 10px; border: 1px solid #007bff;">
             <div class="card-body p-3">
-                <h3 class="text-center text-success">TIPOS REGISTRADAS</h3>
+                <h3 class="text-center text-success">MARCAS REGISTRADAS</h3>
 
                 <div class="table-responsive p-2">
                     <table class="table table-striped table-hover table-bordered w-100 table-sm" id="TableMarcas">

@@ -8,20 +8,21 @@ use Model\Marcas;
 use MVC\Router;
 
 class MarcaController extends ActiveRecord{
-    public static function renderizarPagina(Router $router){
-        $router->render('marcas/index', []);
-
-        verificarPermisos('marcas');
-    }
+   public static function renderizarPagina(Router $router)
+{
+    // verificarPermisos('marcas'); 
+    
+    $router->render('marcas/index', []);
+}
 
     //Guardar Marcas
     public static function guardarAPI(){
-        session_start(); // ✅ AGREGADO
+        getHeadersApi();
 
         $_POST['nombre_marca'] = htmlspecialchars($_POST['nombre_marca']);
-        $cantidad_nombre = strlen($_POST['nombre_marca']);
+        $cantidad_nombre_marca = strlen($_POST['nombre_marca']);
 
-        if ($cantidad_nombre < 2){
+        if ($cantidad_nombre_marca < 2){
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
@@ -30,13 +31,13 @@ class MarcaController extends ActiveRecord{
             return;
         }
 
-        $nombre_repetido = trim(strtoupper($_POST['nombre_marca']));
-        $sql_verificar = "SELECT id_marca FROM marcas 
-                         WHERE UPPER(TRIM(nombre_marca)) = " . self::$db->quote($nombre_repetido) . "
+        $marca_repetida = trim(strtolower($_POST['nombre_marca']));
+        $sql_verificar = "SELECT id_marca FROM lopez_marcas 
+                         WHERE LOWER(TRIM(nombre_marca)) = " . self::$db->quote($marca_repetida) . "
                          AND activo = 'T'";
-        $nombre_existe = self::fetchFirst($sql_verificar);
+        $marca_existe = self::fetchFirst($sql_verificar);
         
-        if ($nombre_existe) {
+        if ($marca_existe) {
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
@@ -45,14 +46,29 @@ class MarcaController extends ActiveRecord{
             return;
         }
 
-        $_POST['descripcion'] = htmlspecialchars($_POST['descripcion']);
+        if (!empty($_POST['descripcion'])) {
+            $_POST['descripcion'] = htmlspecialchars($_POST['descripcion']);
+            $cantidad_descripcion = strlen($_POST['descripcion']);
+
+            if ($cantidad_descripcion > 200) {
+                http_response_code(400);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'La descripción no puede exceder los 200 caracteres'
+                ]);
+                return;
+            }
+        }
+
+        // Obtener el usuario actual de la sesión (ajusta según tu sistema de autenticación)
+        $usuario_creacion = $_SESSION['usuario_id'] ?? 1; // Por defecto 1 si no hay sesión
 
         try {
             $data = new Marcas([
                 'nombre_marca' => $_POST['nombre_marca'],
                 'descripcion' => $_POST['descripcion'],
-                'activo' => 'T',
-                'usuario_creacion' => $_SESSION['usuario_id'] ?? 1  // ✅ CORREGIDO
+                'usuario_creacion' => $usuario_creacion,
+                'activo' => 'T'
             ]);
 
             $crear = $data->crear();
@@ -74,47 +90,41 @@ class MarcaController extends ActiveRecord{
 
     //Buscar Marcas
     public static function buscarAPI(){
-    try {
-        $sql = "SELECT 
-                    m.id_marca,
-                    m.nombre_marca,
-                    m.descripcion,
-                    m.fecha_creacion,
-                    COALESCE(u.nombre_completo, 'Sistema') as usuario_creador,
-                    COALESCE(COUNT(mo.id_modelo), 0) as modelos_registrados
-                FROM lopez_tipo m
-                LEFT JOIN usuarios u ON m.usuario_creacion = u.id_usuario  
-                LEFT JOIN modelos mo ON m.id_marca = mo.id_marca AND mo.activo = 'T'
-                WHERE m.activo = 'T'
-                GROUP BY m.id_marca, m.nombre_marca, m.descripcion, m.fecha_creacion, u.nombre_completo
-                ORDER BY m.nombre_marca";
-        
-        $data = self::fetchArray($sql);
+        try {
+            $sql = "SELECT m.id_marca, m.nombre_marca, m.descripcion, m.activo, 
+                           m.fecha_creacion, u.nombre_completo as usuario_creacion
+                    FROM lopez_marcas m 
+                    LEFT JOIN lopez_usuarios u ON m.usuario_creacion = u.id_usuario 
+                    WHERE m.activo = 'T'
+                    ORDER BY m.nombre_marca";
+            $data = self::fetchArray($sql);
 
-        http_response_code(200);
-        echo json_encode([
-            'codigo' => 1,
-            'mensaje' => 'Marcas obtenidas correctamente',
-            'data' => $data
-        ]);
-    } catch (Exception $e) {
-        http_response_code(400);
-        echo json_encode([
-            'codigo' => 0,
-            'mensaje' => 'Error al obtener las marcas',
-            'detalle' => $e->getMessage()
-        ]);
+            http_response_code(200);
+            echo json_encode([
+                'codigo' => 1,
+                'mensaje' => 'Marcas obtenidas correctamente',
+                'data' => $data
+            ]);
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'Error al obtener las marcas',
+                'detalle' => $e->getMessage()
+            ]);
+        }
     }
-}
+
     //Modificar Marcas
     public static function modificarAPI(){
-        
+        getHeadersApi();
+
         $id = $_POST['id_marca'];
 
         $_POST['nombre_marca'] = htmlspecialchars($_POST['nombre_marca']);
-        $cantidad_nombre = strlen($_POST['nombre_marca']);
+        $cantidad_nombre_marca = strlen($_POST['nombre_marca']);
 
-        if ($cantidad_nombre < 2) {
+        if ($cantidad_nombre_marca < 2) {
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
@@ -123,14 +133,14 @@ class MarcaController extends ActiveRecord{
             return;
         }
 
-        $nombre_repetido = trim(strtoupper($_POST['nombre_marca']));
-        $sql_verificar = "SELECT id_marca FROM lopez_tipo 
-                         WHERE UPPER(TRIM(nombre_marca)) = " . self::$db->quote($nombre_repetido) . "
+        $marca_repetida = trim(strtolower($_POST['nombre_marca']));
+        $sql_verificar = "SELECT id_marca FROM lopez_marcas 
+                         WHERE LOWER(TRIM(nombre_marca)) = " . self::$db->quote($marca_repetida) . "
                          AND activo = 'T' 
                          AND id_marca != " . (int)$id;
-        $nombre_existe = self::fetchFirst($sql_verificar);
+        $marca_existe = self::fetchFirst($sql_verificar);
         
-        if ($nombre_existe) {
+        if ($marca_existe) {
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
@@ -139,16 +149,30 @@ class MarcaController extends ActiveRecord{
             return;
         }
 
-        $_POST['descripcion'] = htmlspecialchars($_POST['descripcion']);
+        if (!empty($_POST['descripcion'])) {
+            $_POST['descripcion'] = htmlspecialchars($_POST['descripcion']);
+            $cantidad_descripcion = strlen($_POST['descripcion']);
+
+            if ($cantidad_descripcion > 200) {
+                http_response_code(400);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'La descripción no puede exceder los 200 caracteres'
+                ]);
+                return;
+            }
+        }
 
         try {
             $data = Marcas::find($id);
-            $data->sincronizar([
+            
+            $datos_actualizar = [
                 'nombre_marca' => $_POST['nombre_marca'],
                 'descripcion' => $_POST['descripcion'],
                 'activo' => 'T'
-            ]);
+            ];
 
+            $data->sincronizar($datos_actualizar);
             $data->actualizar();
 
             http_response_code(200);
@@ -172,7 +196,7 @@ class MarcaController extends ActiveRecord{
         try {
             $id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
 
-            $sql_verificar = "SELECT id_marca, nombre_marca FROM lopez_tipo WHERE id_marca = $id AND activo = 'T'";
+            $sql_verificar = "SELECT id_marca, nombre_marca FROM lopez_marcas WHERE id_marca = $id AND activo = 'T'";
             $marca = self::fetchFirst($sql_verificar);
             
             if (!$marca) {
@@ -184,7 +208,22 @@ class MarcaController extends ActiveRecord{
                 return;
             }
 
+            // Verificar si la marca está siendo utilizada en otras tablas (opcional)
+            // Ejemplo: si tienes una tabla de productos que use esta marca
+            /*
+            $sql_verificar_uso = "SELECT COUNT(*) as total FROM lopez_productos WHERE id_marca = $id AND activo = 'T'";
+            $uso_marca = self::fetchFirst($sql_verificar_uso);
             
+            if ($uso_marca['total'] > 0) {
+                http_response_code(400);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'No se puede eliminar la marca porque está siendo utilizada en productos'
+                ]);
+                return;
+            }
+            */
+
             self::EliminarMarca($id, 'F');
 
             http_response_code(200);
@@ -204,51 +243,10 @@ class MarcaController extends ActiveRecord{
         }
     }
 
-    public static function marcasDisponiblesAPI(){
-        try {
-            $sql = "SELECT id_marca, nombre_marca FROM lopez_tipo WHERE activo = 'T' ORDER BY nombre_marca";
-            $data = self::fetchArray($sql);
-
-            http_response_code(200);
-            echo json_encode([
-                'codigo' => 1,
-                'mensaje' => 'Marcas disponibles obtenidas correctamente',
-                'data' => $data
-            ]);
-        } catch (Exception $e) {
-            http_response_code(400);
-            echo json_encode([
-                'codigo' => 0,
-                'mensaje' => 'Error al obtener las marcas disponibles',
-                'detalle' => $e->getMessage()
-            ]);
-        }
-    }
-
     public static function EliminarMarca($id, $situacion)
     {
-        $sql = "UPDATE marcas SET activo = '$situacion' WHERE id_marca = $id";
+        $sql = "UPDATE lopez_marcas SET activo = '$situacion' WHERE id_marca = $id";
         return self::SQL($sql);
-    }
-
-    public static function ModelosAsignadosMarca($id_marca)
-    {
-        $sql = "SELECT COUNT(*) as total FROM lopez_tipo WHERE id_marca = $id_marca AND activo = 'T'";
-        $resultado = self::fetchFirst($sql);
-        return $resultado['total'] ?? 0;
-    }
-
-    // public static function OrdenesReparacionMarca($id_marca)
-    // {
-    //     $sql = "SELECT COUNT(*) as total FROM ordenes_reparacion WHERE id_marca = $id_marca";
-    //     $resultado = self::fetchFirst($sql);
-    //     return $resultado['total'] ?? 0;
-    // }
-
-    public static function ObtenerMarcasDisponibles()
-    {
-        $sql = "SELECT * FROM lopez_tipo WHERE activo = 'T' ORDER BY nombre_marca";
-        return self::fetchArray($sql);
     }
 
     public static function ReactivarMarca($id)
