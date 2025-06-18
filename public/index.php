@@ -16,8 +16,7 @@ $router = new Router();
 $router->setBaseURL('/' . $_ENV['APP_NAME']);
 
 $router->get('/', [AppController::class,'index']);
-
-
+$router->get('/inicio', [AppController::class,'inicio']);
 //Usuarios 
 
 
@@ -68,6 +67,18 @@ $router->get('/asignaciones/test', [AsignacionesController::class, 'testAPI']);
 
 //mapas
 $router->get('/mapas', [MapasController::class, 'renderizarPagina']);
+
+
+//login 
+$router->get('/login', [AppController::class,'index']);
+$router->get('/logout', [AppController::class,'logout']);
+$router->post('/API/login', [AppController::class,'login']);
+$router->get('/API/logout', [AppController::class,'logout']);
+$router->post('/hashear', [AppController::class, 'hashearPassword']);
+$router->post('/actualizarPasswordsExistentes', [AppController::class, 'actualizarPasswordsExistentes']);
+
+
+
 
 
 // Comprueba y valida las rutas, que existan y les asigna las funciones del Controlador

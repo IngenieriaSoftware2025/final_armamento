@@ -21,7 +21,7 @@ class LoginController extends ActiveRecord
             $dpi = htmlspecialchars($_POST['usu_codigo']);
             $contrasena = htmlspecialchars($_POST['usu_password']);
 
-            $queryExisteUser = "SELECT usuario_nom1, usuario_contra, usuario_dpi FROM usuario WHERE usuario_dpi = '$dpi' AND usuario_situacion = 1";
+            $queryExisteUser = "SELECT usuario_nom1, usuario_contra, usuario_dpi FROM lopez_usuarios WHERE usuario_dpi = '$dpi' AND usuario_situacion = 1";
 
             $existeUsuario = ActiveRecord::fetchArray($queryExisteUser)[0];
 

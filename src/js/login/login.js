@@ -5,7 +5,9 @@ const FormLogin = document.getElementById('FormLogin');
 const BtnIniciar = document.getElementById('BtnIniciar');
 
 const login = async (e) => {
+
     e.preventDefault();
+
     BtnIniciar.disabled = true;
 
     if (!validarFormulario(FormLogin, [''])) {
@@ -14,25 +16,27 @@ const login = async (e) => {
             text: "Debe llenar todos los campos",
             icon: "info"
         });
-        BtnIniciar.disabled = false;
+        BtnIniciar.disabled = false
         return;
     }
 
     try {
-        const body = new FormData(FormLogin);
-        const url = '/inicio_pmlx/login';
+        const body = new FormData(FormLogin)
+        const url = '/final_armamento/API/login'; 
+
         const config = {
             method: 'POST',
             body
-        };
+        }
 
         const respuesta = await fetch(url, config);
         const data = await respuesta.json();
-        const { codigo, mensaje, detalle } = data;
+        
+        const { codigo, mensaje } = data
 
         if (codigo == 1) {
             await Swal.fire({
-                title: 'Exito',
+                title: '¡Bienvenido!',
                 text: mensaje,
                 icon: 'success',
                 showConfirmButton: true,
@@ -46,7 +50,8 @@ const login = async (e) => {
             });
 
             FormLogin.reset();
-            location.href = '/inicio_pmlx/inicio';
+            // ← CORREGIDO: redirigir al inicio del programa
+            location.href = '/final_armamento/inicio'
         } else {
             Swal.fire({
                 title: '¡Error!',
@@ -64,10 +69,21 @@ const login = async (e) => {
         }
 
     } catch (error) {
-        console.log(error);
+        console.log('Error en JavaScript:', error);
+        Swal.fire({
+            title: '¡Error de conexión!',
+            text: 'No se pudo conectar con el servidor',
+            icon: 'error',
+            showConfirmButton: true,
+            background: '#e0f7fa',
+            customClass: {
+                title: 'custom-title-class',
+                text: 'custom-text-class'
+            }
+        });
     }
 
     BtnIniciar.disabled = false;
 }
 
-FormLogin.addEventListener('submit', login);
+FormLogin.addEventListener('submit', login)

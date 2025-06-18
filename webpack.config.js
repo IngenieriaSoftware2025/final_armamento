@@ -10,7 +10,8 @@ module.exports = {
     'js/modelos/index' : './src/js/modelos/index.js',
     'js/asignaciones/index' : './src/js/asignaciones/index.js',
     'js/estadisticas/index' : './src/js/estadisticas/index.js',
-    'js/mapas/index' : './src/js/mapas/index.js'
+    'js/mapas/index' : './src/js/mapas/index.js',
+    'js/login/login' : './src/js/login/login.js',
   },
   output: {
     filename: '[name].js',

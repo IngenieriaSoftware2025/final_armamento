@@ -24,7 +24,7 @@
                 
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0" style="margin: 0;">
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/ejemplo/"><i class="bi bi-house-fill me-2"></i>Inicio</a>
+                        <a class="nav-link" aria-current="page" href="/final_armamento/inicio"><i class="bi bi-house-fill me-2"></i>Inicio</a>
                     </li>
 
                      <li class="nav-item">
