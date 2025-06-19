@@ -5,12 +5,13 @@ import DataTable from "datatables.net-bs5";
 import { lenguaje } from "../lenguaje";
 import { Chart } from "chart.js/auto";
 
-const grafico1 = document.getElementById("grafico1").getContext("2d");
-const grafico2 = document.getElementById("grafico2").getContext("2d");
-const grafico3 = document.getElementById("grafico3").getContext("2d");
-const grafico4 = document.getElementById("grafico4").getContext("2d");
+// ELEMENTOS DEL DOM PARA LAS GRÁFICAS DE ARMAMENTOS
+const graficoTipos = document.getElementById("graficoTipos").getContext("2d");
+const graficoUsuarios = document.getElementById("graficoUsuarios").getContext("2d");
+const graficoMarcas = document.getElementById("graficoMarcas").getContext("2d");
+const graficoAsignacionesMes = document.getElementById("graficoAsignacionesMes").getContext("2d");
 
-
+// FUNCIÓN DE COLORES (la misma que usas)
 function getColorForEstado(cantidad) {
     let color = "";
   
@@ -25,8 +26,25 @@ function getColorForEstado(cantidad) {
     return color;
 }
 
-// Crear las gráficas
-window.graficaProductos = new Chart(grafico1, {
+// FUNCIÓN DE COLORES ESPECÍFICA PARA ARMAMENTOS
+function getColorForArmamentos(cantidad) {
+    let color = "";
+  
+    if(cantidad > 10){
+        color = "#28a745"; // Verde fuerte
+    } else if(cantidad > 5 && cantidad <= 10){
+        color = "#ffc107"; // Amarillo
+    } else if(cantidad > 2 && cantidad <= 5){
+        color = "#fd7e14"; // Naranja
+    } else if(cantidad <= 2){
+        color = "#dc3545"; // Rojo
+    }
+   
+    return color;
+}
+
+// CREAR LAS GRÁFICAS DE ARMAMENTOS
+window.graficaTiposArmamentos = new Chart(graficoTipos, {
     type: 'bar',
     data: {
         labels: [],
@@ -40,14 +58,17 @@ window.graficaProductos = new Chart(grafico1, {
         plugins: {
             title: {
                 display: true,
-                text: 'Productos Vendidos'
+                text: 'Tipos de Armamentos Más Asignados'
+            },
+            legend: {
+                display: false
             }
         }
     }
 });
 
-window.graficaProductos2 = new Chart(grafico2, {
-    type: 'pie',
+window.graficaUsuariosArmamentos = new Chart(graficoUsuarios, {
+    type: 'doughnut',
     data: {
         labels: [],
         datasets: []
@@ -57,33 +78,30 @@ window.graficaProductos2 = new Chart(grafico2, {
         plugins: {
             title: {
                 display: true,
-                text: 'Distribución de Productos'
+                text: 'Usuarios con Más Armamentos Asignados'
             }
         }
     }
 });
 
-window.graficaProductos3 = new Chart(grafico3, {
-    type: 'bar',
+window.graficaMarcasArmamentos = new Chart(graficoMarcas, {
+    type: 'polarArea',
     data: {
         labels: [],
         datasets: []
     },
     options: {
         responsive: true,
-        scales: {
-            y: { beginAtZero: true }
-        },
         plugins: {
             title: {
                 display: true,
-                text: 'Clientes con Más Productos Comprados'
+                text: 'Marcas de Armamentos Más Populares'
             }
         }
     }
 });
 
-window.graficaProductos4 = new Chart(grafico4, {
+window.graficaAsignacionesMes = new Chart(graficoAsignacionesMes, {
     type: 'line',
     data: {
         labels: [],
@@ -97,85 +115,68 @@ window.graficaProductos4 = new Chart(grafico4, {
         plugins: {
             title: {
                 display: true,
-                text: 'Ventas por Mes'
+                text: 'Asignaciones de Armamentos por Mes'
             }
         }
     }
 });
 
-// Función para buscar productos vendidos (tu función original)
-const BuscarProductos = async () => {
-    const url = '/final_armamento/estadisticas/buscarAPI';
+// FUNCIÓN PARA BUSCAR TIPOS DE ARMAMENTOS MÁS ASIGNADOS
+const BuscarTiposArmamentos = async () => {
+    const url = '/final_armamento/estadisticas/buscarTiposArmamentosAPI';
     const config = {
         method: 'GET'
     }
 
     try {
-        console.log('Iniciando búsqueda de productos...');
+        console.log('Iniciando búsqueda de tipos de armamentos...');
         const respuesta = await fetch(url, config);
         const datos = await respuesta.json();
         const { codigo, mensaje, data } = datos;
         
         if (codigo == 1) {
-            console.log('Productos:', data)
-            const productos = [];
-            const datosProductos = new Map();
+            console.log('Tipos de armamentos:', data);
             
-            data.forEach(d => {
-                if (!datosProductos.has(d.producto)) {
-                    datosProductos.set(d.producto, d.cantidad);
-                    productos.push({ 
-                        producto: d.producto, 
-                        pro_id: d.pro_id, 
-                        cantidad: d.cantidad 
-                    });
-                }
-            });
+            // Tomar solo los top 10 para mejor visualización
+            const topTipos = data.slice(0, 10);
             
-            const etiquetasProductos = [...new Set(data.map(d => d.producto))];
+            const etiquetasTipos = topTipos.map(d => `${d.tipo_armamento}\n(${d.marca} ${d.modelo})`);
+            const cantidadAsignaciones = topTipos.map(d => parseInt(d.total_asignaciones));
+            const asignacionesActivas = topTipos.map(d => parseInt(d.asignaciones_activas));
             
-            const datasets = productos.map(e => ({
-                label: e.producto,
-                data: etiquetasProductos.map(productos => {
-                    const match = data.find(d => d.producto === productos && e.producto === d.producto);
-                    return match ? match.cantidad : 0;
-                }),
-                backgroundColor: getColorForEstado(e.cantidad)
-            }));
-            
-            if (window.graficaProductos) {
-                window.graficaProductos.data.labels = etiquetasProductos;
-                window.graficaProductos.data.datasets = datasets;
-                window.graficaProductos.update();
-            }
-
-            if (window.graficaProductos2) {
-                window.graficaProductos2.data.labels = etiquetasProductos;
-                window.graficaProductos2.data.datasets = [{
-                    data: productos.map(p => p.cantidad),
-                    backgroundColor: productos.map(p => getColorForEstado(p.cantidad))
-                }];
-                window.graficaProductos2.update();
+            if (window.graficaTiposArmamentos) {
+                window.graficaTiposArmamentos.data.labels = etiquetasTipos;
+                window.graficaTiposArmamentos.data.datasets = [
+                    {
+                        label: 'Total Asignaciones',
+                        data: cantidadAsignaciones,
+                        backgroundColor: cantidadAsignaciones.map(cantidad => getColorForArmamentos(cantidad)),
+                        borderColor: 'rgba(0, 0, 0, 0.1)',
+                        borderWidth: 1
+                    }
+                ];
+                window.graficaTiposArmamentos.update();
+                console.log('Gráfica de tipos de armamentos actualizada');
             }
 
         } else {
-            console.error('Error en productos:', mensaje);
+            console.error('Error en tipos de armamentos:', mensaje);
         }
 
     } catch (error) {
-        console.error('Error al cargar productos:', error);
+        console.error('Error al cargar tipos de armamentos:', error);
     }
 }
 
-// Función para buscar clientes con más productos comprados
-const BuscarClientes = async () => {
-    const url = '/final_armamento/estadisticas/buscarClientesAPI';
+// FUNCIÓN PARA BUSCAR USUARIOS CON MÁS ARMAMENTOS
+const BuscarUsuariosArmamentos = async () => {
+    const url = '/final_armamento/estadisticas/buscarUsuariosArmamentosAPI';
     const config = {
         method: 'GET'
     }
 
     try {
-        console.log('Iniciando búsqueda de clientes...');
+        console.log('Iniciando búsqueda de usuarios con armamentos...');
         const respuesta = await fetch(url, config);
         
         if (!respuesta.ok) {
@@ -186,27 +187,29 @@ const BuscarClientes = async () => {
         const { codigo, mensaje, data } = datos;
         
         if (codigo == 1) {
-            console.log('Clientes encontrados:', data);
+            console.log('Usuarios con armamentos encontrados:', data);
             
-            const etiquetasClientes = data.map(d => d.cliente);
-            const cantidadProductos = data.map(d => parseInt(d.total_productos));
+            // Tomar solo los top 8 para mejor visualización
+            const topUsuarios = data.slice(0, 8);
             
-            if (window.graficaProductos3) {
-                window.graficaProductos3.data.labels = etiquetasClientes;
-                window.graficaProductos3.data.datasets = [{
-                    label: 'Productos Comprados',
-                    data: cantidadProductos,
-                    // USANDO LA MISMA FUNCIÓN DE COLORES
-                    backgroundColor: cantidadProductos.map(cantidad => getColorForEstado(cantidad)),
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
+            const etiquetasUsuarios = topUsuarios.map(d => `${d.usuario}\n(${d.nombre_usuario})`);
+            const armamentosActivos = topUsuarios.map(d => parseInt(d.armamentos_activos));
+            
+            if (window.graficaUsuariosArmamentos) {
+                window.graficaUsuariosArmamentos.data.labels = etiquetasUsuarios;
+                window.graficaUsuariosArmamentos.data.datasets = [{
+                    label: 'Armamentos Activos',
+                    data: armamentosActivos,
+                    backgroundColor: armamentosActivos.map(cantidad => getColorForArmamentos(cantidad)),
+                    borderColor: '#fff',
+                    borderWidth: 2
                 }];
-                window.graficaProductos3.update();
-                console.log('Gráfica de clientes actualizada');
+                window.graficaUsuariosArmamentos.update();
+                console.log('Gráfica de usuarios con armamentos actualizada');
             }
 
         } else {
-            console.error('Error en clientes:', mensaje);
+            console.error('Error en usuarios con armamentos:', mensaje);
             await Swal.fire({
                 position: "center",
                 icon: "error",
@@ -217,26 +220,26 @@ const BuscarClientes = async () => {
         }
 
     } catch (error) {
-        console.error('Error al cargar clientes:', error);
+        console.error('Error al cargar usuarios con armamentos:', error);
         await Swal.fire({
             position: "center",
             icon: "error",
             title: "Error de conexión",
-            text: "No se pudo conectar con la API de clientes: " + error.message,
+            text: "No se pudo conectar con la API de usuarios: " + error.message,
             showConfirmButton: true,
         });
     }
 }
 
-// Función para buscar ventas por mes
-const BuscarVentasMes = async () => {
-    const url = '/final_armamento/estadisticas/buscarVentasMesAPI';
+// FUNCIÓN PARA BUSCAR MARCAS DE ARMAMENTOS MÁS POPULARES
+const BuscarMarcasArmamentos = async () => {
+    const url = '/final_armamento/estadisticas/buscarMarcasArmamentosAPI';
     const config = {
         method: 'GET'
     }
 
     try {
-        console.log('Iniciando búsqueda de ventas por mes...');
+        console.log('Iniciando búsqueda de marcas de armamentos...');
         const respuesta = await fetch(url, config);
         
         if (!respuesta.ok) {
@@ -247,41 +250,118 @@ const BuscarVentasMes = async () => {
         const { codigo, mensaje, data } = datos;
         
         if (codigo == 1) {
-            console.log('Ventas por mes encontradas:', data);
+            console.log('Marcas de armamentos encontradas:', data);
+            
+            const etiquetasMarcas = data.map(d => d.marca);
+            const totalAsignaciones = data.map(d => parseInt(d.total_asignaciones));
+            const asignacionesActivas = data.map(d => parseInt(d.asignaciones_activas));
+            
+            if (window.graficaMarcasArmamentos) {
+                window.graficaMarcasArmamentos.data.labels = etiquetasMarcas;
+                window.graficaMarcasArmamentos.data.datasets = [{
+                    label: 'Asignaciones Activas',
+                    data: asignacionesActivas,
+                    backgroundColor: asignacionesActivas.map(cantidad => getColorForArmamentos(cantidad)),
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }];
+                window.graficaMarcasArmamentos.update();
+                console.log('Gráfica de marcas de armamentos actualizada');
+            }
+
+        } else {
+            console.error('Error en marcas de armamentos:', mensaje);
+            await Swal.fire({
+                position: "center",
+                icon: "error",
+                title: "Error",
+                text: mensaje,
+                showConfirmButton: true,
+            });
+        }
+
+    } catch (error) {
+        console.error('Error al cargar marcas de armamentos:', error);
+        await Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Error de conexión",
+            text: "Error al obtener las marcas: " + error.message,
+            showConfirmButton: true,
+        });
+    }
+}
+
+// FUNCIÓN PARA BUSCAR ASIGNACIONES POR MES
+const BuscarAsignacionesMes = async () => {
+    const url = '/final_armamento/estadisticas/buscarAsignacionesMesAPI';
+    const config = {
+        method: 'GET'
+    }
+
+    try {
+        console.log('Iniciando búsqueda de asignaciones por mes...');
+        const respuesta = await fetch(url, config);
+        
+        if (!respuesta.ok) {
+            throw new Error(`HTTP error! status: ${respuesta.status}`);
+        }
+        
+        const datos = await respuesta.json();
+        const { codigo, mensaje, data } = datos;
+        
+        if (codigo == 1) {
+            console.log('Asignaciones por mes encontradas:', data);
             
             const etiquetasMeses = data.map(d => d.mes);
-            const totalVentas = data.map(d => parseInt(d.total_ventas));
-            const totalIngresos = data.map(d => parseFloat(d.total_ingresos));
+            const totalAsignaciones = data.map(d => parseInt(d.total_asignaciones));
+            const asignacionesActivas = data.map(d => parseInt(d.asignaciones_activas));
+            const asignacionesRetiradas = data.map(d => parseInt(d.asignaciones_retiradas));
+            const usuariosDiferentes = data.map(d => parseInt(d.usuarios_diferentes));
             
-            if (window.graficaProductos4) {
-                window.graficaProductos4.data.labels = etiquetasMeses;
-                window.graficaProductos4.data.datasets = [
+            if (window.graficaAsignacionesMes) {
+                window.graficaAsignacionesMes.data.labels = etiquetasMeses;
+                window.graficaAsignacionesMes.data.datasets = [
                     {
-                        label: 'Número de Ventas',
-                        data: totalVentas,
-                        // USANDO LA MISMA FUNCIÓN DE COLORES para las líneas
-                        borderColor: 'lightblue',
-                        backgroundColor: 'rgba(173, 216, 230, 0.3)', // lightblue transparente
+                        label: 'Total Asignaciones',
+                        data: totalAsignaciones,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
                         tension: 0.1,
-                        pointBackgroundColor: totalVentas.map(cantidad => getColorForEstado(cantidad))
+                        pointBackgroundColor: totalAsignaciones.map(cantidad => getColorForArmamentos(cantidad))
                     },
                     {
-                        label: 'Ingresos ($)',
-                        data: totalIngresos,
-                        // Color consistente para ingresos
-                        borderColor: 'lightpink',
-                        backgroundColor: 'rgba(255, 182, 193, 0.3)', // lightpink transparente
+                        label: 'Asignaciones Activas',
+                        data: asignacionesActivas,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         tension: 0.1,
-                        pointBackgroundColor: totalIngresos.map(ingreso => getColorForEstado(Math.round(ingreso/100))) // Ajustar escala para ingresos
+                        pointBackgroundColor: asignacionesActivas.map(cantidad => getColorForArmamentos(cantidad))
+                    },
+                    {
+                        label: 'Asignaciones Retiradas',
+                        data: asignacionesRetiradas,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.1,
+                        pointBackgroundColor: asignacionesRetiradas.map(cantidad => getColorForArmamentos(cantidad))
+                    },
+                    {
+                        label: 'Usuarios Únicos',
+                        data: usuariosDiferentes,
+                        borderColor: '#ffc107',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                        tension: 0.1,
+                        pointBackgroundColor: usuariosDiferentes.map(cantidad => getColorForArmamentos(cantidad))
                     }
                 ];
                 
-                window.graficaProductos4.update();
-                console.log('Gráfica de ventas por mes actualizada');
+                window.graficaAsignacionesMes.update();
+                console.log('Gráfica de asignaciones por mes actualizada');
             }
 
         } else {
-            console.error('Error en ventas por mes:', mensaje);
+            console.error('Error en asignaciones por mes:', mensaje);
             await Swal.fire({
                 position: "center",
                 icon: "error",
@@ -292,25 +372,174 @@ const BuscarVentasMes = async () => {
         }
 
     } catch (error) {
-        console.error('Error al cargar ventas por mes:', error);
+        console.error('Error al cargar asignaciones por mes:', error);
         await Swal.fire({
             position: "center",
             icon: "error",
             title: "Error de conexión",
-            text: "Error al obtener las ventas por mes: " + error.message,
+            text: "Error al obtener las asignaciones por mes: " + error.message,
             showConfirmButton: true,
         });
     }
 }
 
-// Llamar todas las funciones con delay para debug
-console.log('Iniciando carga de gráficas...');
-BuscarProductos();
+// FUNCIÓN PARA MOSTRAR ESTADÍSTICAS GENERALES EN CARDS
+const MostrarEstadisticasGenerales = async () => {
+    const url = '/final_armamento/estadisticas/buscarEstadisticasGeneralesAPI';
+    
+    try {
+        const respuesta = await fetch(url);
+        const datos = await respuesta.json();
+        
+        if (datos.codigo == 1 && datos.data.length > 0) {
+            const stats = datos.data[0];
+            
+            // Actualizar los cards de estadísticas
+            const totalTipos = document.getElementById('totalTipos');
+            const totalAsignaciones = document.getElementById('totalAsignaciones');
+            const usuariosConArmamentos = document.getElementById('usuariosConArmamentos');
+            const marcasDiferentes = document.getElementById('marcasDiferentes');
+            
+            if (totalTipos) totalTipos.textContent = stats.total_tipos_armamentos || 0;
+            if (totalAsignaciones) totalAsignaciones.textContent = stats.asignaciones_activas || 0;
+            if (usuariosConArmamentos) usuariosConArmamentos.textContent = stats.usuarios_con_armamentos || 0;
+            if (marcasDiferentes) marcasDiferentes.textContent = stats.marcas_diferentes || 0;
+            
+            console.log('Estadísticas generales actualizadas:', stats);
+        }
+    } catch (error) {
+        console.error('Error cargando estadísticas generales:', error);
+    }
+};
 
-setTimeout(() => {
-    BuscarClientes();
-}, 1000);
+// FUNCIÓN PARA MOSTRAR TOP ASIGNADORES EN UNA TABLA
+const MostrarTopAsignadores = async () => {
+    const url = '/final_armamento/estadisticas/buscarTopAsignadorasAPI';
+    
+    try {
+        const respuesta = await fetch(url);
+        const datos = await respuesta.json();
+        
+        if (datos.codigo == 1) {
+            const topAsignadores = datos.data;
+            const tablaContainer = document.getElementById('topAsignadores');
+            
+            if (tablaContainer && topAsignadores.length > 0) {
+                let html = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Top Usuarios que Asignan Armamentos</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Asignador</th>
+                                            <th>Total Asignaciones</th>
+                                            <th>Activas</th>
+                                            <th>Usuarios Asignados</th>
+                                            <th>Tipos Asignados</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                
+                topAsignadores.forEach((asignador, index) => {
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <strong>${asignador.asignador}</strong><br>
+                                <small class="text-muted">${asignador.nombre_usuario}</small>
+                            </td>
+                            <td><span class="badge bg-primary">${asignador.total_asignaciones_realizadas}</span></td>
+                            <td><span class="badge bg-success">${asignador.asignaciones_activas_realizadas}</span></td>
+                            <td><span class="badge bg-info">${asignador.usuarios_diferentes_asignados}</span></td>
+                            <td><span class="badge bg-warning">${asignador.tipos_diferentes_asignados}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                tablaContainer.innerHTML = html;
+                console.log('Tabla de top asignadores actualizada');
+            }
+        }
+    } catch (error) {
+        console.error('Error cargando top asignadores:', error);
+    }
+};
 
-setTimeout(() => {
-    BuscarVentasMes();
-}, 2000);
+// FUNCIÓN PRINCIPAL PARA CARGAR TODAS LAS ESTADÍSTICAS
+const CargarEstadisticasArmamentos = () => {
+    console.log('Iniciando carga de estadísticas de armamentos...');
+    
+    // Cargar estadísticas generales primero
+    MostrarEstadisticasGenerales();
+    
+    // Cargar gráficas con delays para mejor rendimiento
+    BuscarTiposArmamentos();
+    
+    setTimeout(() => {
+        BuscarUsuariosArmamentos();
+    }, 500);
+    
+    setTimeout(() => {
+        BuscarMarcasArmamentos();
+    }, 1000);
+    
+    setTimeout(() => {
+        BuscarAsignacionesMes();
+    }, 1500);
+    
+    setTimeout(() => {
+        MostrarTopAsignadores();
+    }, 2000);
+};
+
+// EVENTO PARA ACTUALIZAR ESTADÍSTICAS
+const btnActualizarEstadisticas = document.getElementById('btnActualizarEstadisticas');
+if (btnActualizarEstadisticas) {
+    btnActualizarEstadisticas.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Actualizando estadísticas...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+                CargarEstadisticasArmamentos();
+                
+                setTimeout(() => {
+                    Swal.close();
+                    Swal.fire({
+                        position: "center",
+                        icon: "success",
+                        title: "Estadísticas actualizadas",
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }, 3000);
+            }
+        });
+    });
+}
+
+// INICIALIZAR AL CARGAR LA PÁGINA
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM cargado, iniciando estadísticas de armamentos...');
+    CargarEstadisticasArmamentos();
+});
+
+// ACTUALIZACIÓN AUTOMÁTICA CADA 5 MINUTOS
+setInterval(() => {
+    console.log('Actualizando estadísticas automáticamente...');
+    MostrarEstadisticasGenerales();
+}, 300000); // 5 minutos

@@ -322,22 +322,7 @@ class ModeloController extends ActiveRecord{
                 return;
             }
 
-            // Verificar si el modelo está siendo utilizado en otras tablas (opcional)
-            // Ejemplo: si tienes una tabla de equipos que use este modelo
-            /*
-            $sql_verificar_uso = "SELECT COUNT(*) as total FROM lopez_equipos WHERE id_modelo = $id AND activo = 'T'";
-            $uso_modelo = self::fetchFirst($sql_verificar_uso);
-            
-            if ($uso_modelo['total'] > 0) {
-                http_response_code(400);
-                echo json_encode([
-                    'codigo' => 0,
-                    'mensaje' => 'No se puede eliminar el modelo porque está siendo utilizado en equipos'
-                ]);
-                return;
-            }
-            */
-
+           
             self::EliminarModelo($id, 'F');
 
             http_response_code(200);

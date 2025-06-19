@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/app.php';
 
 use MVC\Router;
 use Controllers\AppController;
-use Controllers\AsignacionesController;
+use Controllers\AsignacionArmamentosController;
 use Controllers\EstadisticaController;
 use Controllers\MapasController;
 use Controllers\MarcaController;
@@ -46,26 +46,41 @@ $router->get('/modelos/eliminarAPI', [ModeloController::class, 'EliminarAPI']);
 $router->get('/modelos/marcasAPI', [ModeloController::class, 'marcasAPI']);
 
 
-// Luego agrega las rutas:
-$router->get('/asignaciones', [AsignacionesController::class, 'renderizarPagina']);
-$router->post('/asignaciones/guardarAPI', [AsignacionesController::class, 'guardarAPI']);
-$router->get('/asignaciones/buscarAPI', [AsignacionesController::class, 'buscarAPI']);
-$router->post('/asignaciones/modificarAPI', [AsignacionesController::class, 'modificarAPI']);
-$router->get('/asignaciones/eliminarAPI', [AsignacionesController::class, 'eliminarAPI']);
-$router->get('/asignaciones/usuariosAPI', [AsignacionesController::class, 'usuariosAPI']);
-$router->get('/asignaciones/modelosAPI', [AsignacionesController::class, 'modelosAPI']);
+
+// Página principal de asignación de armamentos
+$router->get('/asignaciones', [AsignacionArmamentosController::class, 'renderizarPagina']);
+$router->get('/asignaciones/buscarUsuariosAPI', [AsignacionArmamentosController::class, 'buscarUsuariosAPI']);
+$router->get('/asignaciones/buscarArmamentosAPI', [AsignacionArmamentosController::class, 'buscarArmamentosAPI']);
+
+// APIs para operaciones CRUD
+$router->post('/asignaciones/guardarAPI', [AsignacionArmamentosController::class, 'guardarAPI']);
+$router->get('/asignaciones/buscarAPI', [AsignacionArmamentosController::class, 'buscarAPI']);
+$router->post('/asignaciones/modificarAPI', [AsignacionArmamentosController::class, 'modificarAPI']);
+$router->get('/asignaciones/retirar', [AsignacionArmamentosController::class, 'retirarAPI']);
+$router->post('/asignaciones/retirar', [AsignacionArmamentosController::class, 'retirarAPI']);
+
+// APIs para consultas específicas
+$router->get('/asignaciones/estadisticasAPI', [AsignacionArmamentosController::class, 'estadisticasAPI']);
+$router->get('/asignaciones/verificarAsignacionAPI', [AsignacionArmamentosController::class, 'verificarAsignacionAPI']);
+$router->get('/asignaciones/obtenerPorUsuarioAPI', [AsignacionArmamentosController::class, 'obtenerPorUsuarioAPI']);
 
 
-//estadisticas 
-$router->get('/estadisticas', [EstadisticaController::class, 'renderizarPagina']);
-$router->get('/estadisticas/buscarAPI', [EstadisticaController::class, 'buscarAPI']);
-$router->get('/estadisticas/buscarClientesAPI', [EstadisticaController::class, 'buscarClientesAPI']);
-$router->get('/estadisticas/buscarVentasMesAPI', [EstadisticaController::class, 'buscarVentasMesAPI']);
-$router->get('/estadisticas/buscarMarcasAPI', [EstadisticaController::class, 'buscarMarcasAPI']);
-$router->get('/estadisticas/buscarTrabajadoresAPI', [EstadisticaController::class, 'buscarTrabajadoresAPI']);
-$router->get('/estadisticas/buscarUsuariosAPI', [EstadisticaController::class, 'buscarUsuariosAPI']);
 
-$router->get('/asignaciones/test', [AsignacionesController::class, 'testAPI']);
+//AGREGAR ESTAS RUTAS A TU ARCHIVO DE RUTAS (después de las rutas de estadísticas existentes)
+
+//Estadísticas específicas de armamentos
+$router->get('/estadisticas/buscarTiposArmamentosAPI', [EstadisticaController::class, 'buscarTiposArmamentosAPI']);
+$router->get('/estadisticas/buscarUsuariosArmamentosAPI', [EstadisticaController::class, 'buscarUsuariosArmamentosAPI']);
+$router->get('/estadisticas/buscarMarcasArmamentosAPI', [EstadisticaController::class, 'buscarMarcasArmamentosAPI']);
+$router->get('/estadisticas/buscarModelosArmamentosAPI', [EstadisticaController::class, 'buscarModelosArmamentosAPI']);
+$router->get('/estadisticas/buscarAsignacionesMesAPI', [EstadisticaController::class, 'buscarAsignacionesMesAPI']);
+$router->get('/estadisticas/buscarEstadisticasGeneralesAPI', [EstadisticaController::class, 'buscarEstadisticasGeneralesAPI']);
+$router->get('/estadisticas/buscarTopAsignadorasAPI', [EstadisticaController::class, 'buscarTopAsignadorasAPI']);
+
+//Ruta adicional para la página específica de estadísticas de armamentos (opcional)
+$router->get('/estadisticas/armamentos', [EstadisticaController::class, 'renderizarPaginaArmamentos']);
+
+
 
 //mapas
 $router->get('/mapas', [MapasController::class, 'renderizarPagina']);
