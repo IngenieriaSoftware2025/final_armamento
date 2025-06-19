@@ -77,3 +77,30 @@ CREATE TABLE lopez_asignaciones_armamento (
     FOREIGN KEY (usuario_creacion) REFERENCES lopez_usuarios(id_usuario),
     UNIQUE (numero_serie, activo) -- Evita duplicar números de serie activos
 );
+
+-----iniciar sesion
+ 
+ CREATE TABLE usuario_login2025 (
+    usu_id SERIAL PRIMARY KEY,
+    usu_nombre VARCHAR(50),
+    usu_codigo INTEGER,
+    usu_password VARCHAR(150),
+    usu_situacion SMALLINT DEFAULT 1
+);
+
+CREATE TABLE rol_login2025 (
+    rol_id SERIAL PRIMARY KEY,
+    rol_nombre VARCHAR(75),
+    rol_nombre_ct VARCHAR(25),
+    rol_situacion SMALLINT DEFAULT 1
+);
+
+CREATE TABLE permiso_login2025 (
+    permiso_id SERIAL PRIMARY KEY,
+    permiso_usuario INTEGER,
+    permiso_rol INTEGER,
+    permiso_situacion SMALLINT DEFAULT 1,
+    FOREIGN KEY (permiso_usuario) REFERENCES usuario_login2025 (usu_id),
+    FOREIGN KEY (permiso_rol) REFERENCES rol_login2025 (rol_id)
+);
+

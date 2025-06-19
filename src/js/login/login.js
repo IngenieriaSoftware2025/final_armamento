@@ -22,7 +22,7 @@ const login = async (e) => {
 
     try {
         const body = new FormData(FormLogin)
-        const url = '/final_armamento/API/login'; 
+        const url = '/final_armamento/API/login'; // para entras al login 
 
         const config = {
             method: 'POST',

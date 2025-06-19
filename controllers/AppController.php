@@ -234,7 +234,7 @@ class AppController
 
    public static function inicio(Router $router)
 {
-    verificarLogin(); 
+    // verificarLogin(); 
     
     
     $router->render('pages/index',[]);

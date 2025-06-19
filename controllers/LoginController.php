@@ -11,7 +11,7 @@ class LoginController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
-        $router->render('login/index', [], $layout = 'layout/layoutlogin');
+        $router->render('login/index', [], $layout = 'layout/login');
     }
 
     public static function login() {

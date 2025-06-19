@@ -26,6 +26,8 @@ $router->get('/usuarios/buscarAPI', [UsuarioController::class, 'buscarAPI']);
 $router->post('/usuarios/modificarAPI', [UsuarioController::class, 'modificarAPI']);
 $router->get('/usuarios/eliminarAPI', [UsuarioController::class, 'eliminarAPI']);
 $router->get('/usuarios/rolesAPI', [UsuarioController::class, 'rolesAPI']);
+
+
 //marcas 
 $router->get('/marcas', [MarcaController::class, 'renderizarPAgina']);
 $router->post('/marcas/guardarAPI', [MarcaController::class, 'guardarAPI']);
