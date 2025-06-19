@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Reparación de Teléfonos</title>
+    <title>Login - Sistema de Gestión de Armamentos</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
@@ -25,7 +25,7 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
             overflow: hidden;
             max-width: 450px;
@@ -33,7 +33,7 @@
         }
 
         .login-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
             padding: 40px 30px 30px;
             text-align: center;
@@ -61,11 +61,17 @@
             justify-content: center;
             margin: 0 auto 20px;
             border: 3px solid rgba(255, 255, 255, 0.2);
+            animation: pulse 2s ease-in-out infinite;
         }
 
         .company-logo i {
             font-size: 2.5rem;
             color: #fff;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         .company-name {
@@ -99,8 +105,8 @@
         }
 
         .form-floating input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 0.2rem rgba(30, 60, 114, 0.25);
             transform: translateY(-2px);
         }
 
@@ -118,7 +124,7 @@
         }
 
         .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             border: none;
             border-radius: 12px;
             padding: 15px;
@@ -148,7 +154,7 @@
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(30, 60, 114, 0.4);
         }
 
         .btn-login:active {
@@ -165,38 +171,52 @@
             z-index: 1;
         }
 
-        .floating-phone {
+        .floating-weapon {
             position: absolute;
             color: rgba(255, 255, 255, 0.1);
             animation: float 6s ease-in-out infinite;
         }
 
-        .floating-phone:nth-child(1) {
+        .floating-weapon:nth-child(1) {
             top: 10%;
             left: 10%;
             font-size: 2rem;
             animation-delay: 0s;
         }
 
-        .floating-phone:nth-child(2) {
+        .floating-weapon:nth-child(2) {
             top: 20%;
             right: 15%;
             font-size: 1.5rem;
             animation-delay: 2s;
         }
 
-        .floating-phone:nth-child(3) {
+        .floating-weapon:nth-child(3) {
             bottom: 30%;
             left: 5%;
             font-size: 1.8rem;
             animation-delay: 4s;
         }
 
-        .floating-phone:nth-child(4) {
+        .floating-weapon:nth-child(4) {
             bottom: 15%;
             right: 10%;
             font-size: 2.2rem;
             animation-delay: 1s;
+        }
+
+        .floating-weapon:nth-child(5) {
+            top: 50%;
+            left: 3%;
+            font-size: 1.6rem;
+            animation-delay: 3s;
+        }
+
+        .floating-weapon:nth-child(6) {
+            top: 60%;
+            right: 5%;
+            font-size: 1.9rem;
+            animation-delay: 5s;
         }
 
         @keyframes float {
@@ -207,8 +227,21 @@
         .footer-text {
             text-align: center;
             margin-top: 30px;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(30, 60, 114, 0.8);
             font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .security-badge {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 15px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
         }
 
         @media (max-width: 576px) {
@@ -255,15 +288,34 @@
                 transform: rotate(360deg);
             }
         }
+
+        .alert-security {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #f6d55c;
+            color: #856404;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-security i {
+            margin-right: 10px;
+            color: #f39c12;
+        }
     </style>
 </head>
 <body>
     <!-- Elementos flotantes decorativos -->
     <div class="floating-elements">
-        <i class="fas fa-mobile-alt floating-phone"></i>
-        <i class="fas fa-tools floating-phone"></i>
-        <i class="fas fa-smartphone floating-phone"></i>
-        <i class="fas fa-screwdriver floating-phone"></i>
+        <i class="fas fa-crosshairs floating-weapon"></i>
+        <i class="fas fa-shield-alt floating-weapon"></i>
+        <i class="fas fa-user-shield floating-weapon"></i>
+        <i class="fas fa-lock floating-weapon"></i>
+        <i class="fas fa-eye floating-weapon"></i>
+        <i class="fas fa-key floating-weapon"></i>
     </div>
 
     <div class="login-container">
@@ -271,14 +323,28 @@
             <!-- Header de la empresa -->
             <div class="login-header">
                 <div class="company-logo">
-                    <i class="fas fa-mobile-alt"></i>
+                    <i class="fas fa-shield-alt"></i>
                 </div>
-                <h1 class="company-name">TechRepair Pro</h1>
-                <p class="company-tagline">Especialistas en Reparación de Teléfonos</p>
+
+                <h1 class="company-name">Usuario  paolita</h1>
+                <p class="company-tagline">Contraseña 12345678</p>
+
+
+                <h1 class="company-name">🛡️ Sistema López</h1>
+                <p class="company-tagline">Control y Gestión de Armamentos Institucional</p>
+                <div class="security-badge">
+                    <i class="fas fa-lock me-1"></i>ACCESO RESTRINGIDO
+                </div>
             </div>
 
             <!-- Formulario de login -->
             <div class="login-body">
+                <!-- Alerta de seguridad -->
+                <div class="alert-security">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Sistema de acceso controlado. Solo personal autorizado.</span>
+                </div>
+
                 <form id="FormLogin">
                     <div class="form-floating">
                         <input type="text" 
@@ -288,7 +354,7 @@
                                placeholder="Usuario" 
                                required>
                         <label for="nombre_usuario">
-                            <i class="fas fa-user me-2"></i>Nombre de Usuario
+                            <i class="fas fa-user-shield me-2"></i>Código de Usuario
                         </label>
                     </div>
 
@@ -300,28 +366,37 @@
                                placeholder="Contraseña" 
                                required>
                         <label for="password">
-                            <i class="fas fa-lock me-2"></i>Contraseña
+                            <i class="fas fa-key me-2"></i>Clave de Acceso
                         </label>
                     </div>
 
                     <button type="submit" 
                             class="btn btn-login w-100" 
                             id="BtnIniciar">
-                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        <i class="fas fa-sign-in-alt me-2"></i>Acceder al Sistema
                     </button>
                 </form>
 
                 <div class="footer-text">
                     <i class="fas fa-shield-alt me-1"></i>
-                    Acceso seguro al sistema
+                    Acceso seguro y monitorizado
+                    <br>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-eye me-1"></i>
+                        Todos los accesos son registrados
+                    </small>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <div style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 0.85rem; text-align: center;">
-        <i class="fas fa-copyright me-1"></i>2025 TechRepair Pro - Sistema de Gestión
+    <div style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.8); font-size: 0.85rem; text-align: center;">
+        <i class="fas fa-copyright me-1"></i>2025 Sistema López - Gestión de Armamentos Institucional
+        <br>
+        <small style="opacity: 0.7;">
+            <i class="fas fa-shield-alt me-1"></i>Sistema de Seguridad Nivel Alto
+        </small>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
@@ -331,6 +406,8 @@
             e.preventDefault();
             
             const btn = document.getElementById('BtnIniciar');
+            const originalText = btn.innerHTML;
+            
             btn.classList.add('loading');
             btn.disabled = true;
             
@@ -338,7 +415,20 @@
             setTimeout(() => {
                 btn.classList.remove('loading');
                 btn.disabled = false;
+                btn.innerHTML = originalText;
+                
                 // Aquí iría tu lógica de login real
+                // window.location.href = '/proyecto_lopez/dashboard';
+                
+                // Simulación de éxito
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>Acceso Autorizado';
+                btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)';
+                }, 2000);
+                
             }, 2000);
         });
 
@@ -346,6 +436,35 @@
         window.addEventListener('load', function() {
             document.getElementById('nombre_usuario').focus();
         });
+
+        // Validación de seguridad visual
+        document.getElementById('nombre_usuario').addEventListener('input', function() {
+            const value = this.value;
+            if (value.length > 0) {
+                this.style.borderColor = '#28a745';
+            } else {
+                this.style.borderColor = '#e9ecef';
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', function() {
+            const value = this.value;
+            if (value.length >= 6) {
+                this.style.borderColor = '#28a745';
+            } else if (value.length > 0) {
+                this.style.borderColor = '#ffc107';
+            } else {
+                this.style.borderColor = '#e9ecef';
+            }
+        });
+
+        // Efecto de parpadeo en elementos de seguridad
+        setInterval(() => {
+            const securityElements = document.querySelectorAll('.security-badge, .alert-security i');
+            securityElements.forEach(el => {
+                el.style.opacity = el.style.opacity === '0.7' ? '1' : '0.7';
+            });
+        }, 3000);
     </script>
 </body>
 </html>

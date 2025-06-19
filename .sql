@@ -104,3 +104,17 @@ CREATE TABLE permiso_login2025 (
     FOREIGN KEY (permiso_rol) REFERENCES rol_login2025 (rol_id)
 );
 
+
+CREATE TABLE lopez_asignacion_marcas (
+    id_asignacion SERIAL PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_marca INT NOT NULL,
+    fecha_asignacion DATETIME YEAR TO SECOND DEFAULT CURRENT YEAR TO SECOND,
+    activo CHAR(1) DEFAULT 'T',
+    usuario_asignador INT,
+    observaciones VARCHAR(255),
+    FOREIGN KEY (id_usuario) REFERENCES lopez_usuarios(id_usuario),
+    FOREIGN KEY (id_marca) REFERENCES lopez_marcas(id_marca),
+    FOREIGN KEY (usuario_asignador) REFERENCES lopez_usuarios(id_usuario),
+    UNIQUE (id_usuario, id_marca, activo)
+);
