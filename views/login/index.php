@@ -330,8 +330,7 @@
                 <p class="company-tagline">Contraseña 12345678</p>
 
 
-                <h1 class="company-name">🛡️ Sistema López</h1>
-                <p class="company-tagline">Control y Gestión de Armamentos Institucional</p>
+                <h1 class="company-name">REGISTRO DE ARMAS </h1>
                 <div class="security-badge">
                     <i class="fas fa-lock me-1"></i>ACCESO RESTRINGIDO
                 </div>

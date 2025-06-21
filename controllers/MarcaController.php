@@ -9,8 +9,7 @@ use MVC\Router;
 
 class MarcaController extends ActiveRecord{
    public static function renderizarPagina(Router $router)
-{
-    // verificarPermisos('marcas'); 
+{ 
     
     $router->render('marcas/index', []);
 }
@@ -208,21 +207,7 @@ class MarcaController extends ActiveRecord{
                 return;
             }
 
-            // Verificar si la marca está siendo utilizada en otras tablas (opcional)
-            // Ejemplo: si tienes una tabla de productos que use esta marca
-            /*
-            $sql_verificar_uso = "SELECT COUNT(*) as total FROM lopez_productos WHERE id_marca = $id AND activo = 'T'";
-            $uso_marca = self::fetchFirst($sql_verificar_uso);
-            
-            if ($uso_marca['total'] > 0) {
-                http_response_code(400);
-                echo json_encode([
-                    'codigo' => 0,
-                    'mensaje' => 'No se puede eliminar la marca porque está siendo utilizada en productos'
-                ]);
-                return;
-            }
-            */
+    
 
             self::EliminarMarca($id, 'F');
 

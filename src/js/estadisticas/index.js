@@ -6,25 +6,16 @@ import { lenguaje } from "../lenguaje";
 import { Chart } from "chart.js/auto";
 
 // ELEMENTOS DEL DOM PARA LAS GRÁFICAS DE ARMAMENTOS
-const graficoTipos = document.getElementById("graficoTipos").getContext("2d");
-const graficoUsuarios = document.getElementById("graficoUsuarios").getContext("2d");
-const graficoMarcas = document.getElementById("graficoMarcas").getContext("2d");
-const graficoAsignacionesMes = document.getElementById("graficoAsignacionesMes").getContext("2d");
+const canvasModelos = document.getElementById("graficoModelos");
+const canvasMarcas = document.getElementById("graficoMarcas");
+const canvasUsuarios = document.getElementById("graficoUsuarios");
+const canvasAsignaciones = document.getElementById("graficoAsignaciones");
 
-// FUNCIÓN DE COLORES (la misma que usas)
-function getColorForEstado(cantidad) {
-    let color = "";
-  
-    if(cantidad > 5){
-        color = "lightblue";
-    } else if(cantidad > 2 && cantidad <= 5){
-        color = 'lightpink';
-    } else if(cantidad <= 2){
-        color = 'mistyrose';
-    }
-   
-    return color;
-}
+// Verificar que los elementos existen antes de obtener el contexto
+const graficoModelos = canvasModelos ? canvasModelos.getContext("2d") : null;
+const graficoMarcas = canvasMarcas ? canvasMarcas.getContext("2d") : null;
+const graficoUsuarios = canvasUsuarios ? canvasUsuarios.getContext("2d") : null;
+const graficoAsignaciones = canvasAsignaciones ? canvasAsignaciones.getContext("2d") : null;
 
 // FUNCIÓN DE COLORES ESPECÍFICA PARA ARMAMENTOS
 function getColorForArmamentos(cantidad) {
@@ -43,140 +34,186 @@ function getColorForArmamentos(cantidad) {
     return color;
 }
 
-// CREAR LAS GRÁFICAS DE ARMAMENTOS
-window.graficaTiposArmamentos = new Chart(graficoTipos, {
-    type: 'bar',
-    data: {
-        labels: [],
-        datasets: []
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true }
+// FUNCIÓN PARA GENERAR COLORES ALEATORIOS
+function generarColoresAleatorios(cantidad) {
+    const colores = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF',
+        '#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56'
+    ];
+    return Array.from({length: cantidad}, (_, i) => colores[i % colores.length]);
+}
+
+// CREAR LAS GRÁFICAS DE ARMAMENTOS SOLO SI LOS ELEMENTOS EXISTEN
+if (graficoModelos) {
+    window.graficaModelos = new Chart(graficoModelos, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: []
         },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Tipos de Armamentos Más Asignados'
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
             },
-            legend: {
-                display: false
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Modelos Más Asignados'
+                },
+                legend: {
+                    display: false
+                }
             }
         }
-    }
-});
+    });
+} else {
+    console.warn('Elemento graficoModelos no encontrado');
+}
 
-window.graficaUsuariosArmamentos = new Chart(graficoUsuarios, {
-    type: 'doughnut',
-    data: {
-        labels: [],
-        datasets: []
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            title: {
-                display: true,
-                text: 'Usuarios con Más Armamentos Asignados'
-            }
-        }
-    }
-});
-
-window.graficaMarcasArmamentos = new Chart(graficoMarcas, {
-    type: 'polarArea',
-    data: {
-        labels: [],
-        datasets: []
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            title: {
-                display: true,
-                text: 'Marcas de Armamentos Más Populares'
-            }
-        }
-    }
-});
-
-window.graficaAsignacionesMes = new Chart(graficoAsignacionesMes, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: []
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true }
+if (graficoMarcas) {
+    window.graficaMarcas = new Chart(graficoMarcas, {
+        type: 'doughnut',
+        data: {
+            labels: [],
+            datasets: []
         },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Asignaciones de Armamentos por Mes'
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Marcas Más Populares'
+                }
             }
         }
-    }
-});
+    });
+} else {
+    console.warn('Elemento graficoMarcas no encontrado');
+}
 
-// FUNCIÓN PARA BUSCAR TIPOS DE ARMAMENTOS MÁS ASIGNADOS
-const BuscarTiposArmamentos = async () => {
-    const url = '/final_armamento/estadisticas/buscarTiposArmamentosAPI';
-    const config = {
-        method: 'GET'
-    }
+if (graficoUsuarios) {
+    window.graficaUsuarios = new Chart(graficoUsuarios, {
+        type: 'polarArea',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Usuarios del Sistema'
+                }
+            }
+        }
+    });
+} else {
+    console.warn('Elemento graficoUsuarios no encontrado');
+}
 
+if (graficoAsignaciones) {
+    window.graficaAsignaciones = new Chart(graficoAsignaciones, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Top Usuarios con Más Armamentos'
+                },
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+} else {
+    console.warn('Elemento graficoAsignaciones no encontrado');
+}
+
+// FUNCIÓN PARA BUSCAR MODELOS MÁS ASIGNADOS
+const BuscarModelos = async () => {
+    const url = '/final_armamento/estadisticas/buscarModelosAPI';
+    
     try {
-        console.log('Iniciando búsqueda de tipos de armamentos...');
-        const respuesta = await fetch(url, config);
+        console.log('🔍 Buscando modelos en:', url);
+        const respuesta = await fetch(url);
+        console.log('📡 Respuesta recibida, status:', respuesta.status);
+        
+        if (!respuesta.ok) {
+            throw new Error(`HTTP ${respuesta.status}: ${respuesta.statusText}`);
+        }
+        
         const datos = await respuesta.json();
+        console.log('📊 Datos de modelos:', datos);
+        
         const { codigo, mensaje, data } = datos;
         
         if (codigo == 1) {
-            console.log('Tipos de armamentos:', data);
+            console.log('✅ Modelos encontrados:', data.length, 'registros');
+            
+            if (data.length === 0) {
+                console.warn('⚠️ No hay datos de modelos para mostrar');
+                return;
+            }
             
             // Tomar solo los top 10 para mejor visualización
-            const topTipos = data.slice(0, 10);
+            const topModelos = data.slice(0, 10);
             
-            const etiquetasTipos = topTipos.map(d => `${d.tipo_armamento}\n(${d.marca} ${d.modelo})`);
-            const cantidadAsignaciones = topTipos.map(d => parseInt(d.total_asignaciones));
-            const asignacionesActivas = topTipos.map(d => parseInt(d.asignaciones_activas));
+            const etiquetasModelos = topModelos.map(d => d.modelo);
+            const cantidadAsignaciones = topModelos.map(d => parseInt(d.cantidad_asignaciones));
             
-            if (window.graficaTiposArmamentos) {
-                window.graficaTiposArmamentos.data.labels = etiquetasTipos;
-                window.graficaTiposArmamentos.data.datasets = [
+            console.log('🏷️ Etiquetas:', etiquetasModelos);
+            console.log('📈 Cantidades:', cantidadAsignaciones);
+            
+            if (window.graficaModelos) {
+                window.graficaModelos.data.labels = etiquetasModelos;
+                window.graficaModelos.data.datasets = [
                     {
-                        label: 'Total Asignaciones',
+                        label: 'Cantidad de Asignaciones',
                         data: cantidadAsignaciones,
                         backgroundColor: cantidadAsignaciones.map(cantidad => getColorForArmamentos(cantidad)),
                         borderColor: 'rgba(0, 0, 0, 0.1)',
                         borderWidth: 1
                     }
                 ];
-                window.graficaTiposArmamentos.update();
-                console.log('Gráfica de tipos de armamentos actualizada');
+                window.graficaModelos.update();
+                console.log('✅ Gráfica de modelos actualizada');
+            } else {
+                console.error('❌ window.graficaModelos no existe');
             }
 
         } else {
-            console.error('Error en tipos de armamentos:', mensaje);
+            console.error('❌ Error en respuesta de modelos:', mensaje);
+            console.error('❌ Código de error:', codigo);
         }
 
     } catch (error) {
-        console.error('Error al cargar tipos de armamentos:', error);
+        console.error('❌ Error al cargar modelos:', error);
+        console.error('❌ Tipo de error:', error.name);
+        console.error('❌ Mensaje:', error.message);
     }
 }
 
-// FUNCIÓN PARA BUSCAR USUARIOS CON MÁS ARMAMENTOS
-const BuscarUsuariosArmamentos = async () => {
-    const url = '/final_armamento/estadisticas/buscarUsuariosArmamentosAPI';
+// FUNCIÓN PARA BUSCAR MARCAS MÁS ASIGNADAS
+const BuscarMarcas = async () => {
+    const url = '/final_armamento/estadisticas/buscarMarcasAPI';
     const config = {
         method: 'GET'
     }
 
     try {
-        console.log('Iniciando búsqueda de usuarios con armamentos...');
+        console.log('Iniciando búsqueda de marcas...');
         const respuesta = await fetch(url, config);
         
         if (!respuesta.ok) {
@@ -187,29 +224,89 @@ const BuscarUsuariosArmamentos = async () => {
         const { codigo, mensaje, data } = datos;
         
         if (codigo == 1) {
-            console.log('Usuarios con armamentos encontrados:', data);
+            console.log('Marcas encontradas:', data);
+            
+            const etiquetasMarcas = data.map(d => d.marca);
+            const cantidadAsignaciones = data.map(d => parseInt(d.cantidad_asignaciones));
+            
+            if (window.graficaMarcas) {
+                window.graficaMarcas.data.labels = etiquetasMarcas;
+                window.graficaMarcas.data.datasets = [{
+                    label: 'Cantidad de Asignaciones',
+                    data: cantidadAsignaciones,
+                    backgroundColor: generarColoresAleatorios(etiquetasMarcas.length),
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }];
+                window.graficaMarcas.update();
+                console.log('Gráfica de marcas actualizada');
+            }
+
+        } else {
+            console.error('Error en marcas:', mensaje);
+            await Swal.fire({
+                position: "center",
+                icon: "error",
+                title: "Error",
+                text: mensaje,
+                showConfirmButton: true,
+            });
+        }
+
+    } catch (error) {
+        console.error('Error al cargar marcas:', error);
+        await Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Error de conexión",
+            text: "No se pudo conectar con la API de marcas: " + error.message,
+            showConfirmButton: true,
+        });
+    }
+}
+
+// FUNCIÓN PARA BUSCAR USUARIOS DEL SISTEMA
+const BuscarUsuarios = async () => {
+    const url = '/final_armamento/estadisticas/buscarUsuariosAPI';
+    const config = {
+        method: 'GET'
+    }
+
+    try {
+        console.log('Iniciando búsqueda de usuarios...');
+        const respuesta = await fetch(url, config);
+        
+        if (!respuesta.ok) {
+            throw new Error(`HTTP error! status: ${respuesta.status}`);
+        }
+        
+        const datos = await respuesta.json();
+        const { codigo, mensaje, data } = datos;
+        
+        if (codigo == 1) {
+            console.log('Usuarios encontrados:', data);
             
             // Tomar solo los top 8 para mejor visualización
             const topUsuarios = data.slice(0, 8);
             
-            const etiquetasUsuarios = topUsuarios.map(d => `${d.usuario}\n(${d.nombre_usuario})`);
-            const armamentosActivos = topUsuarios.map(d => parseInt(d.armamentos_activos));
+            const etiquetasUsuarios = topUsuarios.map(d => `${d.usuario} (${d.rol})`);
+            const armamentosAsignados = topUsuarios.map(d => parseInt(d.armamentos_asignados));
             
-            if (window.graficaUsuariosArmamentos) {
-                window.graficaUsuariosArmamentos.data.labels = etiquetasUsuarios;
-                window.graficaUsuariosArmamentos.data.datasets = [{
-                    label: 'Armamentos Activos',
-                    data: armamentosActivos,
-                    backgroundColor: armamentosActivos.map(cantidad => getColorForArmamentos(cantidad)),
+            if (window.graficaUsuarios) {
+                window.graficaUsuarios.data.labels = etiquetasUsuarios;
+                window.graficaUsuarios.data.datasets = [{
+                    label: 'Armamentos Asignados',
+                    data: armamentosAsignados,
+                    backgroundColor: generarColoresAleatorios(etiquetasUsuarios.length),
                     borderColor: '#fff',
                     borderWidth: 2
                 }];
-                window.graficaUsuariosArmamentos.update();
-                console.log('Gráfica de usuarios con armamentos actualizada');
+                window.graficaUsuarios.update();
+                console.log('Gráfica de usuarios actualizada');
             }
 
         } else {
-            console.error('Error en usuarios con armamentos:', mensaje);
+            console.error('Error en usuarios:', mensaje);
             await Swal.fire({
                 position: "center",
                 icon: "error",
@@ -220,26 +317,26 @@ const BuscarUsuariosArmamentos = async () => {
         }
 
     } catch (error) {
-        console.error('Error al cargar usuarios con armamentos:', error);
+        console.error('Error al cargar usuarios:', error);
         await Swal.fire({
             position: "center",
             icon: "error",
             title: "Error de conexión",
-            text: "No se pudo conectar con la API de usuarios: " + error.message,
+            text: "Error al obtener los usuarios: " + error.message,
             showConfirmButton: true,
         });
     }
 }
 
-// FUNCIÓN PARA BUSCAR MARCAS DE ARMAMENTOS MÁS POPULARES
-const BuscarMarcasArmamentos = async () => {
-    const url = '/final_armamento/estadisticas/buscarMarcasArmamentosAPI';
+// FUNCIÓN PARA BUSCAR TOP USUARIOS CON MÁS ARMAMENTOS
+const BuscarAsignaciones = async () => {
+    const url = '/final_armamento/estadisticas/buscarAsignacionesAPI';
     const config = {
         method: 'GET'
     }
 
     try {
-        console.log('Iniciando búsqueda de marcas de armamentos...');
+        console.log('Iniciando búsqueda de asignaciones...');
         const respuesta = await fetch(url, config);
         
         if (!respuesta.ok) {
@@ -250,118 +347,29 @@ const BuscarMarcasArmamentos = async () => {
         const { codigo, mensaje, data } = datos;
         
         if (codigo == 1) {
-            console.log('Marcas de armamentos encontradas:', data);
+            console.log('Asignaciones encontradas:', data);
             
-            const etiquetasMarcas = data.map(d => d.marca);
-            const totalAsignaciones = data.map(d => parseInt(d.total_asignaciones));
-            const asignacionesActivas = data.map(d => parseInt(d.asignaciones_activas));
+            const etiquetasAsignaciones = data.map(d => d.usuario);
+            const totalArmamentos = data.map(d => parseInt(d.total_armamentos));
             
-            if (window.graficaMarcasArmamentos) {
-                window.graficaMarcasArmamentos.data.labels = etiquetasMarcas;
-                window.graficaMarcasArmamentos.data.datasets = [{
-                    label: 'Asignaciones Activas',
-                    data: asignacionesActivas,
-                    backgroundColor: asignacionesActivas.map(cantidad => getColorForArmamentos(cantidad)),
-                    borderColor: '#fff',
-                    borderWidth: 2
-                }];
-                window.graficaMarcasArmamentos.update();
-                console.log('Gráfica de marcas de armamentos actualizada');
-            }
-
-        } else {
-            console.error('Error en marcas de armamentos:', mensaje);
-            await Swal.fire({
-                position: "center",
-                icon: "error",
-                title: "Error",
-                text: mensaje,
-                showConfirmButton: true,
-            });
-        }
-
-    } catch (error) {
-        console.error('Error al cargar marcas de armamentos:', error);
-        await Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Error de conexión",
-            text: "Error al obtener las marcas: " + error.message,
-            showConfirmButton: true,
-        });
-    }
-}
-
-// FUNCIÓN PARA BUSCAR ASIGNACIONES POR MES
-const BuscarAsignacionesMes = async () => {
-    const url = '/final_armamento/estadisticas/buscarAsignacionesMesAPI';
-    const config = {
-        method: 'GET'
-    }
-
-    try {
-        console.log('Iniciando búsqueda de asignaciones por mes...');
-        const respuesta = await fetch(url, config);
-        
-        if (!respuesta.ok) {
-            throw new Error(`HTTP error! status: ${respuesta.status}`);
-        }
-        
-        const datos = await respuesta.json();
-        const { codigo, mensaje, data } = datos;
-        
-        if (codigo == 1) {
-            console.log('Asignaciones por mes encontradas:', data);
-            
-            const etiquetasMeses = data.map(d => d.mes);
-            const totalAsignaciones = data.map(d => parseInt(d.total_asignaciones));
-            const asignacionesActivas = data.map(d => parseInt(d.asignaciones_activas));
-            const asignacionesRetiradas = data.map(d => parseInt(d.asignaciones_retiradas));
-            const usuariosDiferentes = data.map(d => parseInt(d.usuarios_diferentes));
-            
-            if (window.graficaAsignacionesMes) {
-                window.graficaAsignacionesMes.data.labels = etiquetasMeses;
-                window.graficaAsignacionesMes.data.datasets = [
+            if (window.graficaAsignaciones) {
+                window.graficaAsignaciones.data.labels = etiquetasAsignaciones;
+                window.graficaAsignaciones.data.datasets = [
                     {
-                        label: 'Total Asignaciones',
-                        data: totalAsignaciones,
-                        borderColor: '#007bff',
-                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                        tension: 0.1,
-                        pointBackgroundColor: totalAsignaciones.map(cantidad => getColorForArmamentos(cantidad))
-                    },
-                    {
-                        label: 'Asignaciones Activas',
-                        data: asignacionesActivas,
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                        tension: 0.1,
-                        pointBackgroundColor: asignacionesActivas.map(cantidad => getColorForArmamentos(cantidad))
-                    },
-                    {
-                        label: 'Asignaciones Retiradas',
-                        data: asignacionesRetiradas,
-                        borderColor: '#dc3545',
-                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                        tension: 0.1,
-                        pointBackgroundColor: asignacionesRetiradas.map(cantidad => getColorForArmamentos(cantidad))
-                    },
-                    {
-                        label: 'Usuarios Únicos',
-                        data: usuariosDiferentes,
-                        borderColor: '#ffc107',
-                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                        tension: 0.1,
-                        pointBackgroundColor: usuariosDiferentes.map(cantidad => getColorForArmamentos(cantidad))
+                        label: 'Total de Armamentos',
+                        data: totalArmamentos,
+                        backgroundColor: totalArmamentos.map(cantidad => getColorForArmamentos(cantidad)),
+                        borderColor: 'rgba(0, 0, 0, 0.1)',
+                        borderWidth: 1
                     }
                 ];
                 
-                window.graficaAsignacionesMes.update();
-                console.log('Gráfica de asignaciones por mes actualizada');
+                window.graficaAsignaciones.update();
+                console.log('Gráfica de asignaciones actualizada');
             }
 
         } else {
-            console.error('Error en asignaciones por mes:', mensaje);
+            console.error('Error en asignaciones:', mensaje);
             await Swal.fire({
                 position: "center",
                 icon: "error",
@@ -372,63 +380,63 @@ const BuscarAsignacionesMes = async () => {
         }
 
     } catch (error) {
-        console.error('Error al cargar asignaciones por mes:', error);
+        console.error('Error al cargar asignaciones:', error);
         await Swal.fire({
             position: "center",
             icon: "error",
             title: "Error de conexión",
-            text: "Error al obtener las asignaciones por mes: " + error.message,
+            text: "Error al obtener las asignaciones: " + error.message,
             showConfirmButton: true,
         });
     }
 }
 
 // FUNCIÓN PARA MOSTRAR ESTADÍSTICAS GENERALES EN CARDS
-const MostrarEstadisticasGenerales = async () => {
-    const url = '/final_armamento/estadisticas/buscarEstadisticasGeneralesAPI';
+const MostrarResumenGeneral = async () => {
+    const url = '/final_armamento/estadisticas/buscarResumenGeneralAPI';
     
     try {
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
         
-        if (datos.codigo == 1 && datos.data.length > 0) {
-            const stats = datos.data[0];
+        if (datos.codigo == 1 && datos.data) {
+            const stats = datos.data;
             
             // Actualizar los cards de estadísticas
-            const totalTipos = document.getElementById('totalTipos');
+            const totalUsuarios = document.getElementById('totalUsuarios');
+            const totalMarcas = document.getElementById('totalMarcas');
+            const totalModelos = document.getElementById('totalModelos');
             const totalAsignaciones = document.getElementById('totalAsignaciones');
-            const usuariosConArmamentos = document.getElementById('usuariosConArmamentos');
-            const marcasDiferentes = document.getElementById('marcasDiferentes');
             
-            if (totalTipos) totalTipos.textContent = stats.total_tipos_armamentos || 0;
-            if (totalAsignaciones) totalAsignaciones.textContent = stats.asignaciones_activas || 0;
-            if (usuariosConArmamentos) usuariosConArmamentos.textContent = stats.usuarios_con_armamentos || 0;
-            if (marcasDiferentes) marcasDiferentes.textContent = stats.marcas_diferentes || 0;
+            if (totalUsuarios) totalUsuarios.textContent = stats.total_usuarios || 0;
+            if (totalMarcas) totalMarcas.textContent = stats.total_marcas || 0;
+            if (totalModelos) totalModelos.textContent = stats.total_modelos || 0;
+            if (totalAsignaciones) totalAsignaciones.textContent = stats.total_asignaciones || 0;
             
-            console.log('Estadísticas generales actualizadas:', stats);
+            console.log('Resumen general actualizado:', stats);
         }
     } catch (error) {
-        console.error('Error cargando estadísticas generales:', error);
+        console.error('Error cargando resumen general:', error);
     }
 };
 
-// FUNCIÓN PARA MOSTRAR TOP ASIGNADORES EN UNA TABLA
-const MostrarTopAsignadores = async () => {
-    const url = '/final_armamento/estadisticas/buscarTopAsignadorasAPI';
+// FUNCIÓN PARA MOSTRAR ESTADÍSTICAS POR ROL EN UNA TABLA
+const MostrarEstadisticasRol = async () => {
+    const url = '/final_armamento/estadisticas/buscarEstadisticasRolAPI';
     
     try {
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
         
         if (datos.codigo == 1) {
-            const topAsignadores = datos.data;
-            const tablaContainer = document.getElementById('topAsignadores');
+            const estadisticasRol = datos.data;
+            const tablaContainer = document.getElementById('estadisticasRol');
             
-            if (tablaContainer && topAsignadores.length > 0) {
+            if (tablaContainer && estadisticasRol.length > 0) {
                 let html = `
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="mb-0">Top Usuarios que Asignan Armamentos</h5>
+                            <h5 class="mb-0">Estadísticas por Rol de Usuario</h5>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -436,28 +444,24 @@ const MostrarTopAsignadores = async () => {
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Asignador</th>
+                                            <th>Rol</th>
+                                            <th>Total Usuarios</th>
                                             <th>Total Asignaciones</th>
-                                            <th>Activas</th>
-                                            <th>Usuarios Asignados</th>
-                                            <th>Tipos Asignados</th>
+                                            <th>Promedio por Usuario</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                 `;
                 
-                topAsignadores.forEach((asignador, index) => {
+                estadisticasRol.forEach((rol, index) => {
+                    const promedio = rol.total_usuarios > 0 ? (rol.total_asignaciones / rol.total_usuarios).toFixed(1) : 0;
                     html += `
                         <tr>
                             <td>${index + 1}</td>
-                            <td>
-                                <strong>${asignador.asignador}</strong><br>
-                                <small class="text-muted">${asignador.nombre_usuario}</small>
-                            </td>
-                            <td><span class="badge bg-primary">${asignador.total_asignaciones_realizadas}</span></td>
-                            <td><span class="badge bg-success">${asignador.asignaciones_activas_realizadas}</span></td>
-                            <td><span class="badge bg-info">${asignador.usuarios_diferentes_asignados}</span></td>
-                            <td><span class="badge bg-warning">${asignador.tipos_diferentes_asignados}</span></td>
+                            <td><strong>${rol.rol}</strong></td>
+                            <td><span class="badge bg-primary">${rol.total_usuarios}</span></td>
+                            <td><span class="badge bg-success">${rol.total_asignaciones}</span></td>
+                            <td><span class="badge bg-info">${promedio}</span></td>
                         </tr>
                     `;
                 });
@@ -471,39 +475,43 @@ const MostrarTopAsignadores = async () => {
                 `;
                 
                 tablaContainer.innerHTML = html;
-                console.log('Tabla de top asignadores actualizada');
+                console.log('Tabla de estadísticas por rol actualizada');
             }
         }
     } catch (error) {
-        console.error('Error cargando top asignadores:', error);
+        console.error('Error cargando estadísticas por rol:', error);
     }
 };
 
 // FUNCIÓN PRINCIPAL PARA CARGAR TODAS LAS ESTADÍSTICAS
-const CargarEstadisticasArmamentos = () => {
+const CargarEstadisticasArmamentos = async () => {
     console.log('Iniciando carga de estadísticas de armamentos...');
     
-    // Cargar estadísticas generales primero
-    MostrarEstadisticasGenerales();
-    
-    // Cargar gráficas con delays para mejor rendimiento
-    BuscarTiposArmamentos();
-    
-    setTimeout(() => {
-        BuscarUsuariosArmamentos();
-    }, 500);
-    
-    setTimeout(() => {
-        BuscarMarcasArmamentos();
-    }, 1000);
-    
-    setTimeout(() => {
-        BuscarAsignacionesMes();
-    }, 1500);
-    
-    setTimeout(() => {
-        MostrarTopAsignadores();
-    }, 2000);
+    try {
+        // Cargar resumen general primero
+        console.log('Cargando resumen general...');
+        await MostrarResumenGeneral();
+        
+        // Cargar gráficas
+        console.log('Cargando modelos...');
+        await BuscarModelos();
+        
+        console.log('Cargando marcas...');
+        await BuscarMarcas();
+        
+        console.log('Cargando usuarios...');
+        await BuscarUsuarios();
+        
+        console.log('Cargando asignaciones...');
+        await BuscarAsignaciones();
+        
+        console.log('Cargando estadísticas por rol...');
+        await MostrarEstadisticasRol();
+        
+        console.log('Todas las estadísticas cargadas correctamente');
+    } catch (error) {
+        console.error('Error cargando estadísticas:', error);
+    }
 };
 
 // EVENTO PARA ACTUALIZAR ESTADÍSTICAS
@@ -541,5 +549,5 @@ document.addEventListener('DOMContentLoaded', () => {
 // ACTUALIZACIÓN AUTOMÁTICA CADA 5 MINUTOS
 setInterval(() => {
     console.log('Actualizando estadísticas automáticamente...');
-    MostrarEstadisticasGenerales();
+    MostrarResumenGeneral();
 }, 300000); // 5 minutos

@@ -66,11 +66,9 @@
                     <i class="fas fa-shield-alt" style="font-size: 2.2rem; color: #fff;"></i>
                 </div>
                 <h1 style="font-size: 2.8rem; font-weight: 700; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">
-                    🛡️ Sistema López - Gestión de Armamentos 🔫
+                     REGISTRO DE ARMAS  
                 </h1>
-                <p style="font-size: 1.2rem; opacity: 0.9; font-weight: 300; margin-bottom: 30px;">
-                    ⚡ Control y Asignación de Armamentos Institucional ⚡
-                </p>
+               
                 
                 <!-- Estadísticas -->
                 <div class="row" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 15px; padding: 30px; margin-top: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid rgba(255, 255, 255, 0.2);">

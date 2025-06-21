@@ -1,5 +1,5 @@
 // mapas/index.js - Sistema de Mapas para Asignaciones de Armamento
-
+import { Dropdown } from "bootstrap";
 // Variables globales
 let mapa;
 let marcadores = [];

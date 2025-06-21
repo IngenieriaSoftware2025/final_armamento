@@ -3,7 +3,7 @@
         <div class="card custom-card shadow-lg" style="border-radius: 10px; border: 1px solid #007bff;">
             <div class="card-body p-3">
                 <div class="row mb-3">
-                      <h3 class="text-center text-success">ASIGNAR MARCAS A USUARIOS</h3>
+                      <h3 class="text-center text-success">ASIGNACION DE ARMAS</h3>
                 </div>
 
                 <div class="row justify-content-center p-5 shadow-lg">
@@ -19,7 +19,7 @@
                                 </select>
                             </div>
                             <div class="col-lg-6">
-                                <label for="id_marca" class="form-label">MARCA</label>
+                                <label for="id_marca" class="form-label">SELECCIONE UN ARMA</label>
                                 <select class="form-select" id="id_marca" name="id_marca" required>
                                     <option value="">Seleccione una marca</option>
                                 </select>
@@ -69,7 +69,7 @@
     <div class="col-lg-12">
         <div class="card custom-card shadow-lg" style="border-radius: 10px; border: 1px solid #007bff;">
             <div class="card-body p-3">
-                <h3 class="text-center text-success">ASIGNACIONES DE MARCAS</h3>
+                <h3 class="text-center text-success">ASIGNACIONES DE ARMAS</h3>
 
                 <div class="table-responsive p-2">
                     <table class="table table-striped table-hover table-bordered w-100 table-sm" id="TableAsignaciones">
@@ -81,4 +81,6 @@
     </div>
 </div>
 
-<script src="<?= asset('build/js/asignacion_marcas/index.js') ?>"></script>
+
+<script src="<?= asset('build/js/asignacionmarcas/index.js') ?>"></script>
+

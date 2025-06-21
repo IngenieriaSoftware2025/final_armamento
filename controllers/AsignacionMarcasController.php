@@ -7,12 +7,12 @@ use Model\ActiveRecord;
 use Model\AsignacionMarcas;
 use MVC\Router;
 
+
 class AsignacionMarcasController extends ActiveRecord{
    public static function renderizarPAgina(Router $router)
 {
-    // verificarPermisos('asignacion_marcas'); 
     
-    $router->render('asignacion_marcas/index', []);
+    $router->render('asignacionmarcas/index', []);
 }
 
     //Guardar Asignación
@@ -81,7 +81,7 @@ class AsignacionMarcasController extends ActiveRecord{
             return;
         }
 
-        $_POST['observaciones'] = htmlspecialchars($_POST['observaciones']);
+        $_POST['observaciones'] = htmlspecialchars($_POST['observaciones'] ?? '');
 
         $usuario_asignador = filter_var($_POST['usuario_asignador'], FILTER_VALIDATE_INT);
         if ($usuario_asignador === false || $usuario_asignador <= 0){
@@ -123,7 +123,7 @@ class AsignacionMarcasController extends ActiveRecord{
     public static function buscarAPI(){
         try {
             $sql = "SELECT a.id_asignacion, a.id_usuario, a.id_marca, a.fecha_asignacion, 
-                           a.observaciones, a.activo,
+                           a.observaciones, a.activo, a.usuario_asignador,
                            u.nombre_completo as usuario_asignado,
                            m.nombre_marca,
                            ua.nombre_completo as asignado_por
@@ -155,7 +155,25 @@ class AsignacionMarcasController extends ActiveRecord{
     public static function modificarAPI(){
         getHeadersApi();
 
-        $id = $_POST['id_asignacion'];
+        // Verificar que se envíe el ID
+        if (!isset($_POST['id_asignacion']) || empty($_POST['id_asignacion'])) {
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'ID de asignación requerido'
+            ]);
+            return;
+        }
+
+        $id = filter_var($_POST['id_asignacion'], FILTER_VALIDATE_INT);
+        if ($id === false || $id <= 0) {
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'ID de asignación inválido'
+            ]);
+            return;
+        }
 
         $usuario_validado = filter_var($_POST['id_usuario'], FILTER_VALIDATE_INT);
         if ($usuario_validado === false || $usuario_validado <= 0){
@@ -208,7 +226,7 @@ class AsignacionMarcasController extends ActiveRecord{
                                     WHERE id_usuario = $usuario_validado 
                                     AND id_marca = $marca_validada 
                                     AND activo = 'T'
-                                    AND id_asignacion != " . (int)$id;
+                                    AND id_asignacion != $id";
         $asignacion_existe = self::fetchFirst($sql_verificar_asignacion);
         
         if ($asignacion_existe) {
@@ -220,7 +238,7 @@ class AsignacionMarcasController extends ActiveRecord{
             return;
         }
 
-        $_POST['observaciones'] = htmlspecialchars($_POST['observaciones']);
+        $_POST['observaciones'] = htmlspecialchars($_POST['observaciones'] ?? '');
 
         $usuario_asignador = filter_var($_POST['usuario_asignador'], FILTER_VALIDATE_INT);
         if ($usuario_asignador === false || $usuario_asignador <= 0){
@@ -235,6 +253,15 @@ class AsignacionMarcasController extends ActiveRecord{
         try {
             $data = AsignacionMarcas::find($id);
             
+            if (!$data) {
+                http_response_code(404);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'Asignación no encontrada'
+                ]);
+                return;
+            }
+
             $datos_actualizar = [
                 'id_usuario' => $usuario_validado,
                 'id_marca' => $marca_validada,
@@ -262,45 +289,92 @@ class AsignacionMarcasController extends ActiveRecord{
         }
     }
 
-    //Eliminar Asignación
-    public static function EliminarAPI(){
-        try {
-            $id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
+// Agregar estos métodos a tu AsignacionMarcasController
 
-            $sql_verificar = "SELECT a.id_asignacion, u.nombre_completo, m.nombre_marca 
-                             FROM lopez_asignacion_marcas a
-                             INNER JOIN lopez_usuarios u ON a.id_usuario = u.id_usuario
-                             INNER JOIN lopez_marcas m ON a.id_marca = m.id_marca
-                             WHERE a.id_asignacion = $id AND a.activo = 'T'";
-            $asignacion = self::fetchFirst($sql_verificar);
-            
-            if (!$asignacion) {
-                http_response_code(404);
-                echo json_encode([
-                    'codigo' => 0,
-                    'mensaje' => 'La asignación no existe o ya está inactiva'
-                ]);
-                return;
-            }
+public static function testEliminarAPI(){
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'codigo' => 1,
+        'mensaje' => 'Test exitoso - Ruta funcionando',
+        'url' => $_SERVER['REQUEST_URI'],
+        'metodo' => $_SERVER['REQUEST_METHOD'],
+        'parametros' => $_GET
+    ]);
+    exit;
+}
 
-            self::EliminarAsignacion($id, 'F');
-
-            http_response_code(200);
-            echo json_encode([
-                'codigo' => 1,
-                'mensaje' => 'La asignación ha sido eliminada correctamente',
-                'detalle' => "Asignación de '{$asignacion['nombre_marca']}' a '{$asignacion['nombre_completo']}' eliminada exitosamente"
-            ]);
-        
-        } catch (Exception $e) {
-            http_response_code(400);
+// Método mejorado que asegura JSON
+public static function EliminarAPI(){
+    // Limpiar output buffer
+    if (ob_get_level()) {
+        ob_clean();
+    }
+    
+    header('Content-Type: application/json; charset=utf-8');
+    header('Access-Control-Allow-Origin: *');
+    
+    try {
+        if (!isset($_GET['id']) || empty($_GET['id'])) {
             echo json_encode([
                 'codigo' => 0,
-                'mensaje' => 'Error al eliminar la asignación',
-                'detalle' => $e->getMessage()
+                'mensaje' => 'ID de asignación requerido'
+            ]);
+            exit;
+        }
+
+        $id = filter_var($_GET['id'], FILTER_VALIDATE_INT);
+        if ($id === false || $id <= 0) {
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'ID inválido: ' . $_GET['id']
+            ]);
+            exit;
+        }
+
+        // Verificar que existe la asignación
+        $sql_verificar = "SELECT a.id_asignacion, u.nombre_completo, m.nombre_marca 
+                         FROM lopez_asignacion_marcas a
+                         INNER JOIN lopez_usuarios u ON a.id_usuario = u.id_usuario
+                         INNER JOIN lopez_marcas m ON a.id_marca = m.id_marca
+                         WHERE a.id_asignacion = $id AND a.activo = 'T'";
+        
+        $asignacion = self::fetchFirst($sql_verificar);
+        
+        if (!$asignacion) {
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'La asignación no existe o ya está eliminada'
+            ]);
+            exit;
+        }
+
+        // Eliminar (desactivar)
+        $sql_eliminar = "UPDATE lopez_asignacion_marcas SET activo = 'F' WHERE id_asignacion = $id";
+        $resultado = self::SQL($sql_eliminar);
+
+        if ($resultado) {
+            echo json_encode([
+                'codigo' => 1,
+                'mensaje' => 'Asignación eliminada correctamente',
+                'detalle' => "Se eliminó la asignación de '{$asignacion['nombre_marca']}' a '{$asignacion['nombre_completo']}'"
+            ]);
+        } else {
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'No se pudo eliminar la asignación'
             ]);
         }
+    
+    } catch (Exception $e) {
+        echo json_encode([
+            'codigo' => 0,
+            'mensaje' => 'Error al eliminar',
+            'detalle' => $e->getMessage()
+        ]);
     }
+    exit;
+}
+
 
     // Obtener usuarios activos
     public static function usuariosAPI(){
@@ -346,14 +420,26 @@ class AsignacionMarcasController extends ActiveRecord{
         }
     }
 
+    // Método auxiliar para eliminar/desactivar asignación
     public static function EliminarAsignacion($id, $situacion)
     {
         $sql = "UPDATE lopez_asignacion_marcas SET activo = '$situacion' WHERE id_asignacion = $id";
         return self::SQL($sql);
     }
 
+    // Método para reactivar asignación
     public static function ReactivarAsignacion($id)
     {
         return self::EliminarAsignacion($id, 'T');
+    }
+
+    // Método temporal para testing
+    public static function testAPI(){
+        http_response_code(200);
+        echo json_encode([
+            'codigo' => 1,
+            'mensaje' => 'Conexión exitosa - Test funcionando',
+            'data' => ['test' => 'OK']
+        ]);
     }
 }

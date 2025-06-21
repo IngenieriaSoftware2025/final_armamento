@@ -10,7 +10,7 @@ use MVC\Router;
 class ModeloController extends ActiveRecord{
    public static function renderizarPagina(Router $router)
 {
-    // verificarPermisos('modelos'); 
+  
     
     $router->render('modelos/index', []);
 }

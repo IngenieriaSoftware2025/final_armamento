@@ -17,6 +17,15 @@
                                 <input type="text" class="form-control" id="nombre_rol" name="nombre_rol" placeholder="Nombre del rol" required>
                             </div>
                         </div>
+                         <div class="row mb-3 justify-content-center">
+                            <div class="col-lg-6">
+                                <label for="estado_servicio" class="form-label">Asignacion de Permisos</label>
+                                <select class="form-select" id="estado_servicio" name="estado_servicio">
+                                    <option value="P" selected>Pendiente</option>
+                                    <option value="E">En Proceso</option>
+                                    <option value="C">Completado</option>
+                                </select>
+                            </div>
 
                         <div class="row mb-3 justify-content-center">
                             <div class="col-lg-8">

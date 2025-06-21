@@ -10,10 +10,56 @@ use MVC\Router;
 class UsuarioController extends ActiveRecord{
    public static function renderizarPAgina(Router $router)
 {
-    // verificarPermisos('usuarios'); 
     
     $router->render('usuarios/index', []);
 }
+
+    // Función auxiliar para manejar la subida de fotos
+    private static function manejarSubidaFoto($archivo_foto, $nombre_usuario = null) {
+        if (!isset($archivo_foto) || $archivo_foto['error'] === UPLOAD_ERR_NO_FILE) {
+            return null; // No se subió archivo
+        }
+
+        if ($archivo_foto['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('Error al subir el archivo');
+        }
+
+        // Validar tipo de archivo
+        $tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!in_array($archivo_foto['type'], $tipos_permitidos)) {
+            throw new Exception('Tipo de archivo no permitido. Solo JPG, PNG y GIF');
+        }
+
+        // Validar tamaño (2MB máximo)
+        if ($archivo_foto['size'] > 2097152) {
+            throw new Exception('El archivo es demasiado grande. Máximo 2MB');
+        }
+
+        // Crear directorio si no existe
+        $directorio = $_SERVER['DOCUMENT_ROOT'] . '/uploads/usuarios/';
+        if (!file_exists($directorio)) {
+            mkdir($directorio, 0777, true);
+        }
+
+        // Generar nombre único para el archivo
+        $extension = pathinfo($archivo_foto['name'], PATHINFO_EXTENSION);
+        $nombre_archivo = ($nombre_usuario ? $nombre_usuario . '_' : '') . uniqid() . '.' . $extension;
+        $ruta_completa = $directorio . $nombre_archivo;
+
+        // Mover archivo
+        if (!move_uploaded_file($archivo_foto['tmp_name'], $ruta_completa)) {
+            throw new Exception('Error al guardar el archivo');
+        }
+
+        return 'uploads/usuarios/' . $nombre_archivo;
+    }
+
+    // Función para eliminar foto anterior
+    private static function eliminarFotoAnterior($ruta_foto) {
+        if ($ruta_foto && file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . $ruta_foto)) {
+            unlink($_SERVER['DOCUMENT_ROOT'] . '/' . $ruta_foto);
+        }
+    }
 
     //Guardar Usuarios
     public static function guardarAPI(){
@@ -121,15 +167,22 @@ class UsuarioController extends ActiveRecord{
         $_POST['id_rol'] = $rol_validado;
 
         try {
+            // Manejar subida de foto
+            $ruta_foto = null;
+            if (isset($_FILES['foto'])) {
+                $ruta_foto = self::manejarSubidaFoto($_FILES['foto'], $_POST['nombre_usuario']);
+            }
+
             // HASHEAR LA CONTRASEÑA antes de guardar
             $passwordHasheado = password_hash($_POST['password'], PASSWORD_DEFAULT);
             
             $data = new Usuarios([
                 'nombre_usuario' => $_POST['nombre_usuario'],
-                'password' => $passwordHasheado, // ← CONTRASEÑA HASHEADA
+                'password' => $passwordHasheado,
                 'nombre_completo' => $_POST['nombre_completo'],
                 'email' => $_POST['email'],
                 'telefono' => $_POST['telefono'],
+                'foto' => $ruta_foto,
                 'id_rol' => $_POST['id_rol'],
                 'activo' => 'T'
             ]);
@@ -141,7 +194,13 @@ class UsuarioController extends ActiveRecord{
                 'codigo' => 1,
                 'mensaje' => 'El usuario ha sido registrado con éxito'
             ]);
+
         } catch (Exception $e) {
+            // Si hay error y se subió una foto, eliminarla
+            if (isset($ruta_foto) && $ruta_foto) {
+                self::eliminarFotoAnterior($ruta_foto);
+            }
+            
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
@@ -155,10 +214,10 @@ class UsuarioController extends ActiveRecord{
     public static function buscarAPI(){
         try {
             $sql = "SELECT u.id_usuario, u.nombre_usuario, u.nombre_completo, u.email, 
-                           u.telefono, u.activo, r.nombre_rol, 
+                           u.telefono, u.foto, u.activo, r.nombre_rol, 
                            u.fecha_creacion, u.ultimo_acceso
                     FROM lopez_usuarios u 
-                    INNER JOIN roles r ON u.id_rol = r.id_rol 
+                    INNER JOIN lopez_roles r ON u.id_rol = r.id_rol 
                     WHERE u.activo = 'T'
                     ORDER BY u.nombre_completo";
             $data = self::fetchArray($sql);
@@ -262,7 +321,7 @@ class UsuarioController extends ActiveRecord{
             return;
         }
 
-        $sql_verificar_rol = "SELECT id_rol FROM roles WHERE id_rol = $rol_validado";
+        $sql_verificar_rol = "SELECT id_rol FROM lopez_roles WHERE id_rol = $rol_validado";
         $rol_existe = self::fetchFirst($sql_verificar_rol);
         
         if (!$rol_existe) {
@@ -278,6 +337,7 @@ class UsuarioController extends ActiveRecord{
 
         try {
             $data = Usuarios::find($id);
+            $foto_anterior = $data->foto;
             
             $datos_actualizar = [
                 'nombre_usuario' => $_POST['nombre_usuario'],
@@ -287,6 +347,17 @@ class UsuarioController extends ActiveRecord{
                 'id_rol' => $_POST['id_rol'],
                 'activo' => 'T'
             ];
+
+            // Manejar nueva foto si se subió
+            if (isset($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $nueva_foto = self::manejarSubidaFoto($_FILES['foto'], $_POST['nombre_usuario']);
+                $datos_actualizar['foto'] = $nueva_foto;
+                
+                // Eliminar foto anterior si existe
+                if ($foto_anterior) {
+                    self::eliminarFotoAnterior($foto_anterior);
+                }
+            }
 
             // Solo actualizar password si se envió uno nuevo
             if (!empty($_POST['password'])) {
@@ -302,7 +373,6 @@ class UsuarioController extends ActiveRecord{
                     return;
                 }
 
-                // HASHEAR LA NUEVA CONTRASEÑA
                 $datos_actualizar['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
             }
 
@@ -342,7 +412,6 @@ class UsuarioController extends ActiveRecord{
                 return;
             }
 
-            // Verificar si es el último administrador
             if (self::esUltimoAdministrador($id)) {
                 http_response_code(400);
                 echo json_encode([
@@ -394,14 +463,14 @@ class UsuarioController extends ActiveRecord{
 
     public static function EliminarUsuario($id, $situacion)
     {
-        $sql = "UPDATE usuarios SET activo = '$situacion' WHERE id_usuario = $id";
+        $sql = "UPDATE lopez_usuarios SET activo = '$situacion' WHERE id_usuario = $id";
         return self::SQL($sql);
     }
 
     public static function esUltimoAdministrador($id_usuario)
     {
         $sql = "SELECT COUNT(*) as total FROM lopez_usuarios u 
-                INNER JOIN roles r ON u.id_rol = r.id_rol 
+                INNER JOIN lopez_roles r ON u.id_rol = r.id_rol 
                 WHERE r.nombre_rol = 'Administrador' AND u.activo = 'T' AND u.id_usuario != $id_usuario";
         $resultado = self::fetchFirst($sql);
         return $resultado['total'] == 0;
@@ -410,5 +479,26 @@ class UsuarioController extends ActiveRecord{
     public static function ReactivarUsuario($id)
     {
         return self::EliminarUsuario($id, 'T');
+    }
+
+    public static function usuariosAPI(){
+        try {
+            $sql = "SELECT id_usuario, nombre_usuario, nombre_completo FROM lopez_usuarios WHERE activo = 'T' ORDER BY nombre_completo";
+            $data = self::fetchArray($sql);
+
+            http_response_code(200);
+            echo json_encode([
+                'codigo' => 1,
+                'mensaje' => 'Usuarios obtenidos correctamente',
+                'data' => $data
+            ]);
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'Error al obtener los usuarios',
+                'detalle' => $e->getMessage()
+            ]);
+        }
     }
 }
