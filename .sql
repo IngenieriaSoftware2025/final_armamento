@@ -62,10 +62,10 @@ CREATE TABLE lopez_usuarios (
  INSERT INTO lopez_usuarios(id_usuario, nombre_usuario, password, nombre_completo, email, telefono, id_rol, activo, fecha_creacion, ultimo_acceso) 
 	VALUES(1, 'paolita46', '1234567', 'Paola Lopez', 'pao@gmail.com', '57444158', 1, 'Administrador', '2025-6-20 12:19:0', '2025-6-20 12:19:0')
 
-
+-- ////mi contraseña 
 
 INSERT INTO lopez_usuarios(id_usuario, nombre_usuario, password, nombre_completo, email, telefono, id_rol, activo, fecha_creacion, ultimo_acceso, foto) 
-	VALUES(1, 'paolita', '$2y$10$T61pmDFpBdNOT8D/DFF5UOh.url2yyYbNamxNBjhBFprC4fQws5Sy', 'Paola Lopez', 'pao140202@gmail.com', '57444158', 1, 'T', '2025-6-20 20:0:32', '2025-6-20 20:0:32', 'uploads/usuarios/paolita12_6855fd0a451f7.jpg')
+	VALUES(1, 'paolita', '$2y$10$T61pmDFpBdNOT8D/DFF5UOh.url2yyYbNamxNBjhBFprC4fQws5Sy', 'Paola Lopez', 'pao140202@gmail.com', '57444158', 1, 'T', '2025-6-20 20:0:32', '2025-6-20 20:0:32', 'uploads/usuarios/paolita_68561405c5412.jpg')
 GO
    
 
